@@ -1,0 +1,412 @@
+name: Performance & Accessibility Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+env:
+  # Performance thresholds for basketball platform
+  PERF_THRESHOLD_FCP: 1000  # First Contentful Paint (ms)
+  PERF_THRESHOLD_LCP: 2000  # Largest Contentful Paint (ms)
+  PERF_THRESHOLD_TTI: 3000  # Time to Interactive (ms)
+  PERF_THRESHOLD_CLS: 0.1   # Cumulative Layout Shift
+  PERF_THRESHOLD_FID: 100   # First Input Delay (ms)
+  
+  # Real-time scoring specific (critical for game day)
+  PERF_THRESHOLD_WEBSOCKET: 50    # WebSocket latency (ms)
+  PERF_THRESHOLD_API_P95: 100     # API response P95 (ms)
+  PERF_THRESHOLD_API_P99: 500     # API response P99 (ms)
+  
+  # Accessibility requirements (WCAG 2.1 AA)
+  A11Y_THRESHOLD_VIOLATIONS: 0     # Zero tolerance for violations
+  A11Y_WCAG_LEVEL: AA              # WCAG compliance level
+
+jobs:
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build applications
+        run: |
+          npm run build:web
+          npm run build:mobile
+      
+      - name: Start preview server
+        run: |
+          npm run start:preview &
+          npx wait-on http://localhost:3000 -t 30000
+      
+      # Lighthouse Performance Testing
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:3000
+            http://localhost:3000/login
+            http://localhost:3000/dashboard
+            http://localhost:3000/games/live-scoring
+            http://localhost:3000/leagues
+            http://localhost:3000/registration
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: './.lighthouserc.json'
+      
+      - name: Validate Lighthouse scores
+        run: |
+          node scripts/validate-lighthouse-scores.js \
+            --fcp=$PERF_THRESHOLD_FCP \
+            --lcp=$PERF_THRESHOLD_LCP \
+            --tti=$PERF_THRESHOLD_TTI \
+            --cls=$PERF_THRESHOLD_CLS \
+            --fid=$PERF_THRESHOLD_FID
+      
+      # API Performance Testing (Basketball-specific endpoints)
+      - name: API Load Testing - Regular Operations
+        run: |
+          npx autocannon \
+            -c 100 \
+            -d 30 \
+            -p 10 \
+            --json \
+            http://localhost:3000/api/leagues > load-test-regular.json
+          
+          node scripts/validate-api-performance.js \
+            --input=load-test-regular.json \
+            --p95=$PERF_THRESHOLD_API_P95 \
+            --p99=$PERF_THRESHOLD_API_P99
+      
+      - name: API Load Testing - Game Day Simulation
+        run: |
+          # Simulate game day with 10x traffic
+          npx autocannon \
+            -c 1000 \
+            -d 60 \
+            -p 10 \
+            --json \
+            http://localhost:3000/api/games/live-score > load-test-gameday.json
+          
+          node scripts/validate-api-performance.js \
+            --input=load-test-gameday.json \
+            --p95=$((PERF_THRESHOLD_API_P95 * 2)) \
+            --p99=$((PERF_THRESHOLD_API_P99 * 2)) \
+            --gameday=true
+      
+      # WebSocket Performance (Critical for live scoring)
+      - name: WebSocket Latency Testing
+        run: |
+          npm run test:websocket-perf -- \
+            --connections=100 \
+            --duration=30 \
+            --threshold=$PERF_THRESHOLD_WEBSOCKET
+      
+      # Database Query Performance
+      - name: Database Performance Testing
+        run: |
+          npm run test:db-perf -- \
+            --queries=1000 \
+            --concurrent=50 \
+            --threshold=10  # 10ms per query
+      
+      # Bundle Size Analysis
+      - name: Analyze bundle size
+        run: |
+          npm run analyze:bundle -- \
+            --max-size=500  # 500KB max bundle
+            --max-initial=200  # 200KB initial load
+      
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports
+          path: |
+            lighthouse-results/
+            load-test-*.json
+            bundle-analysis/
+
+  accessibility-test:
+    name: Accessibility Testing (WCAG 2.1 AA)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build and start Storybook
+        run: |
+          npm run build:storybook
+          npx http-server storybook-static -p 6006 &
+          npx wait-on http://localhost:6006 -t 30000
+      
+      # Component-level accessibility testing
+      - name: Test components accessibility
+        run: |
+          npm run test:a11y:components -- \
+            --wcag-level=$A11Y_WCAG_LEVEL \
+            --max-violations=$A11Y_THRESHOLD_VIOLATIONS
+      
+      # Full page accessibility testing
+      - name: Run axe-core accessibility tests
+        run: |
+          npm run test:a11y:pages -- \
+            --config=.axe-config.json \
+            --wcag-level=$A11Y_WCAG_LEVEL
+      
+      # Youth-specific accessibility checks
+      - name: Youth accessibility validation
+        run: |
+          npm run test:a11y:youth -- \
+            --min-font-size=14 \
+            --min-touch-target=44 \
+            --max-reading-level=8  # 8th grade reading level
+      
+      # Multi-generational accessibility (6-60+ years)
+      - name: Multi-generational accessibility
+        run: |
+          npm run test:a11y:multi-gen -- \
+            --test-high-contrast \
+            --test-font-scaling \
+            --test-keyboard-nav \
+            --test-screen-reader
+      
+      # Color contrast for outdoor viewing (Phoenix sun)
+      - name: Outdoor visibility testing
+        run: |
+          npm run test:a11y:outdoor -- \
+            --min-contrast=7:1 \
+            --test-bright-light \
+            --test-glare-resistance
+      
+      # Mobile accessibility
+      - name: Mobile accessibility testing
+        run: |
+          npm run test:a11y:mobile -- \
+            --viewport=mobile \
+            --touch-targets=true \
+            --orientation=both
+      
+      - name: Generate accessibility report
+        if: always()
+        run: |
+          npm run report:a11y -- \
+            --format=html \
+            --output=a11y-report.html
+      
+      - name: Upload accessibility artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-reports
+          path: |
+            a11y-report.html
+            test-results/a11y/
+
+  basketball-specific-performance:
+    name: Basketball Platform Specific Performance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup test environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      # Game day simulation
+      - name: Tournament day load testing
+        run: |
+          npm run test:tournament-load -- \
+            --teams=64 \
+            --concurrent-games=32 \
+            --spectators=5000 \
+            --duration=120 \
+            --max-latency=100
+      
+      # Live scoring performance
+      - name: Live scoring stress test
+        run: |
+          npm run test:live-scoring -- \
+            --games=10 \
+            --updates-per-second=50 \
+            --clients=1000 \
+            --max-latency=50
+      
+      # Heat safety alert performance (Phoenix-specific)
+      - name: Heat alert broadcast test
+        run: |
+          npm run test:heat-alerts -- \
+            --recipients=10000 \
+            --delivery-time=30  # 30 seconds max
+            --retry-strategy=exponential
+      
+      # Multi-tenant performance isolation
+      - name: Multi-tenant isolation test
+        run: |
+          npm run test:multi-tenant -- \
+            --tenants=10 \
+            --load-per-tenant=100 \
+            --isolation-check=true \
+            --cross-tenant-leak=false
+      
+      # Youth data protection performance
+      - name: COPPA compliance performance
+        run: |
+          npm run test:coppa-perf -- \
+            --consent-checks=1000 \
+            --age-verification=1000 \
+            --audit-logging=true \
+            --max-overhead=10  # 10ms max overhead
+
+  performance-regression:
+    name: Performance Regression Detection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+      
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Run performance comparison
+        run: |
+          # Test base branch
+          cd base
+          npm ci
+          npm run build
+          npm run perf:baseline > ../baseline-perf.json
+          cd ..
+          
+          # Test PR branch
+          npm ci
+          npm run build
+          npm run perf:current > current-perf.json
+          
+          # Compare results
+          node scripts/compare-performance.js \
+            --baseline=baseline-perf.json \
+            --current=current-perf.json \
+            --threshold=5  # Allow 5% regression
+      
+      - name: Comment PR with results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const perfResults = fs.readFileSync('performance-comparison.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: perfResults
+            });
+
+  quality-gates-summary:
+    name: Quality Gates Summary
+    runs-on: ubuntu-latest
+    needs: [performance-test, accessibility-test, basketball-specific-performance]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Generate quality report
+        run: |
+          node scripts/generate-quality-report.js \
+            --performance \
+            --accessibility \
+            --basketball-specific \
+            --output=quality-report.md
+      
+      - name: Check quality gates
+        run: |
+          node scripts/check-quality-gates.js \
+            --report=quality-report.md \
+            --fail-on-violation=true
+      
+      - name: Upload final report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gates-report
+          path: quality-report.md
+      
+      - name: Update PR status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('quality-report.md', 'utf8');
+            const passed = !report.includes('❌');
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: passed ? 'All quality gates passed' : 'Quality gates failed',
+              context: 'Quality Gates'
+            });

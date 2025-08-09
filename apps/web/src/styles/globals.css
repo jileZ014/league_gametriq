@@ -1,0 +1,421 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Basketball League Management Platform - Global Styles */
+
+@layer base {
+  :root {
+    /* Light Theme Colors */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 24 100% 50%; /* Basketball Orange */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 24 100% 50%;
+    --radius: 12px;
+
+    /* Basketball-specific CSS Variables */
+    --basketball-orange: 24 100% 50%;
+    --basketball-court: 24 71% 37%;
+    --basketball-lines: 0 0% 100%;
+    --team-home: 208 79% 51%;
+    --team-away: 354 70% 54%;
+    --game-live: 14 100% 57%;
+    --heat-warning: 42 100% 50%;
+
+    /* Touch Target Variables */
+    --touch-target-min: 48px;
+    --touch-target-comfortable: 56px;
+    --touch-target-large: 64px;
+
+    /* Font Size Variables (Material Design 3) */
+    --text-display-large: 57px;
+    --text-headline-large: 32px;
+    --text-title-large: 22px;
+    --text-body-large: 16px;
+    --text-label-large: 14px;
+  }
+
+  .dark {
+    /* Dark Theme Colors */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 24 100% 60%; /* Lighter basketball orange for dark theme */
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 24 100% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography Classes */
+  .text-display-large {
+    @apply text-display-large font-normal tracking-tight;
+  }
+
+  .text-display-medium {
+    @apply text-display-medium font-normal;
+  }
+
+  .text-display-small {
+    @apply text-display-small font-normal;
+  }
+
+  .text-headline-large {
+    @apply text-headline-large font-medium;
+  }
+
+  .text-headline-medium {
+    @apply text-headline-medium font-medium;
+  }
+
+  .text-headline-small {
+    @apply text-headline-small font-medium;
+  }
+
+  .text-title-large {
+    @apply text-title-large font-medium;
+  }
+
+  .text-title-medium {
+    @apply text-title-medium font-medium;
+  }
+
+  .text-title-small {
+    @apply text-title-small font-medium;
+  }
+
+  .text-body-large {
+    @apply text-body-large font-normal;
+  }
+
+  .text-body-medium {
+    @apply text-body-medium font-normal;
+  }
+
+  .text-body-small {
+    @apply text-body-small font-normal;
+  }
+
+  .text-label-large {
+    @apply text-label-large font-medium;
+  }
+
+  .text-label-medium {
+    @apply text-label-medium font-medium;
+  }
+
+  .text-label-small {
+    @apply text-label-small font-medium;
+  }
+
+  /* Game Clock Styling */
+  .game-clock {
+    @apply font-mono text-display-large font-bold tabular-nums;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game-clock-compact {
+    @apply font-mono text-headline-large font-bold tabular-nums;
+  }
+
+  /* Score Display */
+  .score-display {
+    @apply font-mono text-display-large font-bold text-center tabular-nums;
+  }
+
+  /* Focus Styles for Accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .focus-ring-inset {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset;
+  }
+
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    :root {
+      --primary: 0 0% 0%;
+      --primary-foreground: 0 0% 100%;
+      --border: 0 0% 0%;
+      --ring: 0 0% 0%;
+    }
+
+    .dark {
+      --primary: 0 0% 100%;
+      --primary-foreground: 0 0% 0%;
+      --border: 0 0% 100%;
+      --ring: 0 0% 100%;
+    }
+  }
+
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .live-indicator {
+      animation: none;
+    }
+
+    .score-change {
+      animation: none;
+      @apply text-primary;
+    }
+  }
+
+  /* Print Styles */
+  @media print {
+    body {
+      @apply text-black bg-white;
+    }
+
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block !important;
+    }
+  }
+}
+
+@layer components {
+  /* Basketball-Specific Component Classes */
+  .court-background {
+    background: linear-gradient(135deg, #d2691e 0%, #a0522d 100%);
+  }
+
+  .court-lines {
+    @apply border-white/90;
+  }
+
+  .team-home-theme {
+    @apply bg-team-home-light text-team-home-dark border-team-home-primary;
+  }
+
+  .team-away-theme {
+    @apply bg-team-away-light text-team-away-dark border-team-away-primary;
+  }
+
+  .game-status-live {
+    @apply bg-game-live/10 text-game-live border-game-live/30;
+  }
+
+  .game-status-scheduled {
+    @apply bg-game-scheduled/10 text-game-scheduled border-game-scheduled/30;
+  }
+
+  .game-status-completed {
+    @apply bg-game-completed/10 text-game-completed border-game-completed/30;
+  }
+
+  /* Heat Safety Status Colors */
+  .heat-green {
+    @apply bg-heat-green/10 text-heat-green border-heat-green/30;
+  }
+
+  .heat-yellow {
+    @apply bg-heat-yellow/20 text-yellow-800 border-heat-yellow/40;
+  }
+
+  .heat-orange {
+    @apply bg-heat-orange/20 text-orange-800 border-heat-orange/40;
+  }
+
+  .heat-red {
+    @apply bg-heat-red/20 text-red-800 border-heat-red/40;
+  }
+
+  /* Age-Appropriate Styling */
+  .youth-interface {
+    /* Larger touch targets and simplified design for ages 6-12 */
+    --touch-target-min: 56px;
+  }
+
+  .teen-interface {
+    /* Standard interface for ages 13-17 */
+    --touch-target-min: 48px;
+  }
+
+  .adult-interface {
+    /* Compact interface for ages 18+ */
+    --touch-target-min: 44px;
+  }
+
+  /* Loading States */
+  .skeleton {
+    @apply bg-muted animate-pulse rounded;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200px 0;
+    }
+    100% {
+      background-position: calc(200px + 100%) 0;
+    }
+  }
+
+  /* Notification Styles */
+  .notification-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  .notification-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+  }
+
+  .notification-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+
+  .notification-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+  }
+}
+
+@layer utilities {
+  /* Basketball Utility Classes */
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+
+  .touch-target-comfortable {
+    min-height: var(--touch-target-comfortable);
+    min-width: var(--touch-target-comfortable);
+  }
+
+  .touch-target-large {
+    min-height: var(--touch-target-large);
+    min-width: var(--touch-target-large);
+  }
+
+  /* Scrollbar Styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--foreground));
+  }
+
+  /* Screen Reader Only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Skip Links */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 8px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: top 200ms ease;
+  }
+
+  .skip-link:focus {
+    top: 8px;
+  }
+
+  /* Safe Area Support for Mobile */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-inset {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}

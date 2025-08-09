@@ -1,0 +1,286 @@
+# Code Ownership for Basketball League Management Platform
+# This file defines who owns different parts of the codebase and who should review changes
+# Format: path/pattern @username @team-name
+
+# ==============================================================================
+# GLOBAL OWNERSHIP
+# ==============================================================================
+
+# Default owners for everything in the repo
+* @basketball-league/platform-leads @basketball-league/architects
+
+# Critical configuration files require platform leads approval
+/.github/ @basketball-league/platform-leads @basketball-league/devops
+/infrastructure/ @basketball-league/platform-leads @basketball-league/devops @basketball-league/security
+/scripts/ @basketball-league/platform-leads @basketball-league/devops
+*.yml @basketball-league/devops
+*.yaml @basketball-league/devops
+*.json @basketball-league/platform-leads
+
+# ==============================================================================
+# DOCUMENTATION & GOVERNANCE
+# ==============================================================================
+
+# Architecture and design documents
+/docs/phase1-requirements/ @basketball-league/product-owners @basketball-league/architects
+/docs/phase2/ @basketball-league/architects @basketball-league/platform-leads
+/docs/phase3/ @basketball-league/platform-leads @basketball-league/scrum-masters
+
+# Architecture Decision Records (ADRs) - Critical for platform evolution
+/docs/phase2/architecture/adrs/ @basketball-league/architects @basketball-league/platform-leads
+
+# Security and compliance documentation
+/docs/phase2/security/ @basketball-league/security @basketball-league/compliance @basketball-league/youth-safety
+
+# ==============================================================================
+# SECURITY & COMPLIANCE (YOUTH PROTECTION)
+# ==============================================================================
+
+# COPPA compliance files - Requires youth safety and legal approval
+**/coppa-compliance.* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/legal
+**/safesport-integration.* @basketball-league/youth-safety @basketball-league/compliance
+
+# Security configurations and policies
+**/*security* @basketball-league/security @basketball-league/youth-safety
+**/*auth* @basketball-league/security @basketball-league/auth-team
+**/*permission* @basketball-league/security
+**/*policy* @basketball-league/security @basketball-league/compliance
+
+# CI/CD Security configurations
+/.github/workflows/security.yml @basketball-league/security @basketball-league/devops
+/.github/workflows/ci.yml @basketball-league/devops @basketball-league/security
+/.github/workflows/deploy-preview.yml @basketball-league/devops
+
+# Dockerfile and container security
+**/Dockerfile* @basketball-league/devops @basketball-league/security
+**/*docker* @basketball-league/devops @basketball-league/security
+
+# ==============================================================================
+# MICROSERVICES OWNERSHIP
+# ==============================================================================
+
+# Authentication & Authorization Service (Critical for COPPA)
+/services/auth-service/ @basketball-league/auth-team @basketball-league/security @basketball-league/youth-safety
+/services/auth-service/**/*coppa* @basketball-league/youth-safety @basketball-league/compliance
+/services/auth-service/**/*safesport* @basketball-league/youth-safety @basketball-league/compliance
+
+# User Management Service (Handles youth data)
+/services/user-service/ @basketball-league/user-team @basketball-league/youth-safety
+/services/user-service/**/*minor* @basketball-league/youth-safety @basketball-league/compliance
+/services/user-service/**/*parent* @basketball-league/youth-safety @basketball-league/compliance
+
+# League Management Service
+/services/league-service/ @basketball-league/league-team @basketball-league/sports-domain
+
+# Game Management Service (Real-time scoring)
+/services/game-service/ @basketball-league/game-team @basketball-league/realtime-team
+/services/game-service/**/*scoring* @basketball-league/game-team @basketball-league/realtime-team
+/services/game-service/**/*websocket* @basketball-league/realtime-team
+
+# Payment Processing Service (PCI DSS Compliance)
+/services/payment-service/ @basketball-league/payment-team @basketball-league/security @basketball-league/compliance
+/services/payment-service/**/*stripe* @basketball-league/payment-team @basketball-league/finops
+/services/payment-service/**/*billing* @basketball-league/payment-team @basketball-league/finops
+
+# Notification Service (Youth communication monitoring)
+/services/notification-service/ @basketball-league/notification-team @basketball-league/youth-safety
+/services/notification-service/**/*filter* @basketball-league/youth-safety @basketball-league/compliance
+/services/notification-service/**/*monitor* @basketball-league/youth-safety @basketball-league/compliance
+
+# ==============================================================================
+# FRONTEND APPLICATIONS
+# ==============================================================================
+
+# Web Application
+/apps/web/ @basketball-league/frontend-web @basketball-league/ux-team
+/apps/web/**/*component* @basketball-league/frontend-web @basketball-league/design-system
+/apps/web/**/*youth* @basketball-league/frontend-web @basketball-league/youth-safety
+/apps/web/**/*child* @basketball-league/frontend-web @basketball-league/youth-safety
+
+# Mobile Application (PWA)
+/apps/mobile/ @basketball-league/frontend-mobile @basketball-league/ux-team
+/apps/mobile/**/*pwa* @basketball-league/frontend-mobile
+/apps/mobile/**/*offline* @basketball-league/frontend-mobile
+
+# ==============================================================================
+# SHARED PACKAGES & UTILITIES
+# ==============================================================================
+
+# Shared packages and libraries
+/packages/ @basketball-league/platform-libs @basketball-league/architects
+
+# Common utilities
+/packages/common/ @basketball-league/platform-libs
+/packages/types/ @basketball-league/platform-libs @basketball-league/api-team
+/packages/validation/ @basketball-league/platform-libs @basketball-league/security
+
+# UI Components and Design System
+/packages/ui-components/ @basketball-league/design-system @basketball-league/frontend-web @basketball-league/frontend-mobile
+/packages/ui-components/**/*accessibility* @basketball-league/accessibility @basketball-league/ux-team
+
+# ==============================================================================
+# DATABASE & DATA MANAGEMENT
+# ==============================================================================
+
+# Database schemas and migrations
+**/migrations/ @basketball-league/database-team @basketball-league/platform-leads
+**/schema* @basketball-league/database-team @basketball-league/architects
+
+# Database configurations
+**/database/ @basketball-league/database-team
+**/*sql @basketball-league/database-team
+**/*postgres* @basketball-league/database-team
+
+# Data retention and COPPA compliance
+**/data-retention.* @basketball-league/database-team @basketball-league/compliance @basketball-league/youth-safety
+
+# ==============================================================================
+# INFRASTRUCTURE & DEVOPS
+# ==============================================================================
+
+# Terraform Infrastructure as Code
+/infrastructure/terraform/ @basketball-league/devops @basketball-league/platform-leads
+/infrastructure/terraform/**/*preview* @basketball-league/devops
+/infrastructure/terraform/**/*production* @basketball-league/devops @basketball-league/platform-leads @basketball-league/security
+
+# Kubernetes configurations
+/infrastructure/kubernetes/ @basketball-league/devops @basketball-league/platform-leads
+/infrastructure/kubernetes/**/*secret* @basketball-league/devops @basketball-league/security
+/infrastructure/kubernetes/**/*config* @basketball-league/devops
+
+# Docker configurations
+/infrastructure/docker/ @basketball-league/devops
+/infrastructure/docker/**/*security* @basketball-league/devops @basketball-league/security
+
+# ==============================================================================
+# MONITORING & OBSERVABILITY
+# ==============================================================================
+
+# Monitoring and alerting configurations
+**/*monitoring* @basketball-league/sre @basketball-league/devops
+**/*alert* @basketball-league/sre @basketball-league/devops
+**/*metric* @basketball-league/sre @basketball-league/devops
+
+# Logging configurations (important for COPPA audit trails)
+**/*log* @basketball-league/sre @basketball-league/devops @basketball-league/compliance
+
+# ==============================================================================
+# TESTING & QUALITY ASSURANCE
+# ==============================================================================
+
+# Test configurations and frameworks
+/tests/ @basketball-league/qa @basketball-league/platform-leads
+**/*test* @basketball-league/qa
+**/*spec* @basketball-league/qa
+
+# E2E tests for critical youth safety features
+/tests/e2e/**/*coppa* @basketball-league/qa @basketball-league/youth-safety @basketball-league/compliance
+/tests/e2e/**/*safesport* @basketball-league/qa @basketball-league/youth-safety
+/tests/e2e/**/*accessibility* @basketball-league/qa @basketball-league/accessibility
+
+# Performance and load testing
+/tests/performance/ @basketball-league/qa @basketball-league/performance
+/tests/load/ @basketball-league/qa @basketball-league/performance @basketball-league/sre
+
+# ==============================================================================
+# SPECIAL FILES REQUIRING EXTRA SCRUTINY
+# ==============================================================================
+
+# Package.json files - Dependencies can introduce vulnerabilities
+package.json @basketball-league/security @basketball-league/platform-leads
+package-lock.json @basketball-league/security @basketball-league/platform-leads
+
+# Environment configurations
+.env* @basketball-league/devops @basketball-league/security
+**/*env* @basketball-league/devops @basketball-league/security
+
+# Configuration files
+*config* @basketball-league/platform-leads @basketball-league/devops
+*settings* @basketball-league/platform-leads
+
+# ==============================================================================
+# REGULATORY & COMPLIANCE SPECIFIC
+# ==============================================================================
+
+# COPPA specific implementations
+**/*coppa* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/legal
+
+# SafeSport integrations
+**/*safesport* @basketball-league/youth-safety @basketball-league/compliance
+
+# Age verification systems
+**/*age-verify* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/auth-team
+**/*age-verification* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/auth-team
+
+# Parental consent workflows
+**/*parental-consent* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/auth-team
+**/*parent-approval* @basketball-league/youth-safety @basketball-league/compliance
+
+# Communication monitoring and filtering
+**/*communication-monitor* @basketball-league/youth-safety @basketball-league/notification-team
+**/*message-filter* @basketball-league/youth-safety @basketball-league/notification-team
+
+# Background check integrations
+**/*background-check* @basketball-league/youth-safety @basketball-league/compliance @basketball-league/auth-team
+
+# ==============================================================================
+# PHOENIX/ARIZONA SPECIFIC FEATURES
+# ==============================================================================
+
+# Heat safety features (Phoenix-specific requirement)
+**/*heat-safety* @basketball-league/phoenix-team @basketball-league/safety
+**/*weather* @basketball-league/phoenix-team @basketball-league/integration-team
+
+# Local Phoenix league configurations
+**/*phoenix* @basketball-league/phoenix-team
+**/*arizona* @basketball-league/phoenix-team
+
+# ==============================================================================
+# TEAM DEFINITIONS
+# ==============================================================================
+# 
+# @basketball-league/platform-leads - Overall platform architecture and strategy
+# @basketball-league/architects - System architecture and technical design
+# @basketball-league/security - Information security and vulnerability management
+# @basketball-league/youth-safety - Youth protection and COPPA compliance specialists
+# @basketball-league/compliance - Legal and regulatory compliance
+# @basketball-league/legal - Legal review for youth platform requirements
+# 
+# @basketball-league/devops - Infrastructure, CI/CD, and deployment
+# @basketball-league/sre - Site reliability and monitoring
+# @basketball-league/database-team - Database design and management
+# 
+# @basketball-league/auth-team - Authentication and authorization
+# @basketball-league/user-team - User management and profiles
+# @basketball-league/league-team - League management features
+# @basketball-league/game-team - Game management and scoring
+# @basketball-league/payment-team - Payment processing and billing
+# @basketball-league/notification-team - Notifications and communications
+# 
+# @basketball-league/frontend-web - Web application development
+# @basketball-league/frontend-mobile - Mobile application development
+# @basketball-league/ux-team - User experience and design
+# @basketball-league/design-system - UI component library
+# @basketball-league/accessibility - Accessibility compliance
+# 
+# @basketball-league/qa - Quality assurance and testing
+# @basketball-league/performance - Performance testing and optimization
+# @basketball-league/platform-libs - Shared libraries and utilities
+# @basketball-league/api-team - API design and integration
+# 
+# @basketball-league/phoenix-team - Phoenix-specific features and requirements
+# @basketball-league/product-owners - Product management and requirements
+# @basketball-league/scrum-masters - Agile process and sprint management
+# @basketball-league/finops - Financial operations and cost management
+# @basketball-league/integration-team - Third-party integrations
+# @basketball-league/realtime-team - Real-time features and WebSocket implementations
+# @basketball-league/safety - General safety features and protocols
+# 
+# ==============================================================================
+
+# Note: This CODEOWNERS file ensures that:
+# 1. Youth safety and COPPA compliance changes are always reviewed by appropriate specialists
+# 2. Security-sensitive changes require security team approval
+# 3. Infrastructure changes are reviewed by DevOps and platform leads
+# 4. Critical business logic changes are reviewed by domain experts
+# 5. All changes maintain the high standards required for youth platform safety

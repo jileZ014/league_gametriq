@@ -1,0 +1,831 @@
+openapi: 3.0.3
+info:
+  title: Reporting Service API
+  description: |
+    Data export and reporting service for the Basketball League Management Platform.
+    Provides CSV, JSON, PDF, and Excel export capabilities with async processing for large datasets.
+    
+    ## Features
+    - Multi-format exports (CSV, JSON, PDF, XLSX)
+    - Async processing for large reports
+    - Batch export functionality
+    - Analytics and insights
+    - Signed URLs for secure downloads
+    - Rate limiting to prevent abuse
+    
+    ## Rate Limits
+    - General endpoints: 100 requests per 15 minutes
+    - Report generation: 10 requests per hour per organization
+    
+  version: 1.0.0
+  contact:
+    name: GameTriq Development Team
+    email: dev@gametriq.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: http://localhost:3007/api/v1
+    description: Development server
+  - url: https://api.gametriq.com/reporting/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Check the health status of the reporting service
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/generate:
+    post:
+      tags: [Reports]
+      summary: Generate a report
+      description: |
+        Generate a report in the specified format. For large reports or PDF format,
+        the report will be processed asynchronously and a report ID will be returned
+        for status checking and download.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportGenerationRequest'
+            examples:
+              games_csv:
+                summary: Games CSV Report
+                value:
+                  reportType: games
+                  format: CSV
+                  startDate: "2024-01-01T00:00:00Z"
+                  endDate: "2024-12-31T23:59:59Z"
+                  seasonId: "123e4567-e89b-12d3-a456-426614174000"
+              financial_pdf:
+                summary: Financial PDF Report
+                value:
+                  reportType: financial
+                  format: PDF
+                  startDate: "2024-01-01T00:00:00Z"
+                  endDate: "2024-12-31T23:59:59Z"
+                  includeArchived: false
+      responses:
+        '200':
+          description: Report generated successfully (sync processing)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportSyncResponse'
+        '202':
+          description: Report generation queued (async processing)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportAsyncResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '500':
+          description: Report generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/{reportId}/status:
+    get:
+      tags: [Reports]
+      summary: Get report status
+      description: Check the status of an async report generation
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: The report ID returned from report generation
+          schema:
+            type: string
+          example: "12345"
+      responses:
+        '200':
+          description: Report status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatusResponse'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/{reportId}/download:
+    get:
+      tags: [Reports]
+      summary: Download report
+      description: Download a completed report file
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: The report ID
+          schema:
+            type: string
+          example: "12345"
+        - name: token
+          in: query
+          required: true
+          description: Download token for security
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: false
+          description: File format hint
+          schema:
+            type: string
+            enum: [csv, json, pdf, xlsx]
+      responses:
+        '200':
+          description: Report file download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Report file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/{reportId}:
+    delete:
+      tags: [Reports]
+      summary: Delete report
+      description: Delete a report file from storage
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: The report ID to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /exports/games:
+    get:
+      tags: [Direct Exports]
+      summary: Export games data
+      description: Direct export of games data (limited to 5000 records)
+      parameters:
+        - $ref: '#/components/parameters/Format'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/VenueIds'
+      responses:
+        '200':
+          description: Games data export
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: string
+                format: binary
+
+  /exports/teams:
+    get:
+      tags: [Direct Exports]
+      summary: Export teams data
+      parameters:
+        - $ref: '#/components/parameters/Format'
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/IncludeArchived'
+      responses:
+        '200':
+          description: Teams data export
+
+  /exports/standings:
+    get:
+      tags: [Direct Exports]
+      summary: Export standings data
+      parameters:
+        - $ref: '#/components/parameters/Format'
+        - $ref: '#/components/parameters/SeasonId'
+        - $ref: '#/components/parameters/DivisionId'
+      responses:
+        '200':
+          description: Standings data export
+
+  /analytics/games:
+    get:
+      tags: [Analytics]
+      summary: Get game analytics
+      description: Retrieve analytics and insights about games
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+        - $ref: '#/components/parameters/SeasonId'
+      responses:
+        '200':
+          description: Game analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameAnalyticsResponse'
+
+  /analytics/financial:
+    get:
+      tags: [Analytics]
+      summary: Get financial analytics
+      description: Retrieve financial analytics and insights
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        '200':
+          description: Financial analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialAnalyticsResponse'
+
+  /exports/batch:
+    post:
+      tags: [Batch Export]
+      summary: Create batch export
+      description: Create a batch export job for multiple reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchExportRequest'
+      responses:
+        '202':
+          description: Batch export created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchExportResponse'
+
+  /exports/batch/{batchId}/status:
+    get:
+      tags: [Batch Export]
+      summary: Get batch export status
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the auth service.
+        Include as: Authorization: Bearer <token>
+
+  parameters:
+    Format:
+      name: format
+      in: query
+      description: Export format
+      required: false
+      schema:
+        type: string
+        enum: [CSV, JSON, PDF, XLSX]
+        default: CSV
+    StartDate:
+      name: start_date
+      in: query
+      description: Start date for data filtering (ISO 8601)
+      required: false
+      schema:
+        type: string
+        format: date-time
+        example: "2024-01-01T00:00:00Z"
+    EndDate:
+      name: end_date
+      in: query
+      description: End date for data filtering (ISO 8601)
+      required: false
+      schema:
+        type: string
+        format: date-time
+        example: "2024-12-31T23:59:59Z"
+    SeasonId:
+      name: season_id
+      in: query
+      description: Filter by specific season
+      required: false
+      schema:
+        type: string
+        format: uuid
+    DivisionId:
+      name: division_id
+      in: query
+      description: Filter by specific division
+      required: false
+      schema:
+        type: string
+        format: uuid
+    VenueIds:
+      name: venue_ids
+      in: query
+      description: Filter by specific venues (comma-separated)
+      required: false
+      schema:
+        type: string
+        example: "uuid1,uuid2,uuid3"
+    IncludeArchived:
+      name: include_archived
+      in: query
+      description: Include archived records
+      required: false
+      schema:
+        type: boolean
+        default: false
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+        service:
+          type: string
+          example: "reporting-service"
+        version:
+          type: string
+          example: "1.0.0"
+        uptime:
+          type: number
+        environment:
+          type: string
+        queue:
+          type: object
+          properties:
+            waiting:
+              type: integer
+            active:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
+        features:
+          type: object
+          properties:
+            csv_export:
+              type: boolean
+            json_export:
+              type: boolean
+            pdf_export:
+              type: boolean
+            async_processing:
+              type: boolean
+            s3_storage:
+              type: boolean
+
+    ReportGenerationRequest:
+      type: object
+      required:
+        - reportType
+        - format
+      properties:
+        reportType:
+          type: string
+          enum: [games, teams, players, standings, officials, financial, venues, attendance]
+          description: Type of report to generate
+        format:
+          type: string
+          enum: [CSV, JSON, PDF, XLSX]
+          description: Output format
+        startDate:
+          type: string
+          format: date-time
+          description: Start date for data filtering
+        endDate:
+          type: string
+          format: date-time
+          description: End date for data filtering
+        seasonId:
+          type: string
+          format: uuid
+          description: Filter by specific season
+        leagueId:
+          type: string
+          format: uuid
+          description: Filter by specific league
+        divisionId:
+          type: string
+          format: uuid
+          description: Filter by specific division
+        teamIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Filter by specific teams
+        venueIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Filter by specific venues
+        maxRows:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          description: Maximum number of rows to include
+        includeArchived:
+          type: boolean
+          default: false
+          description: Include archived records
+        timezone:
+          type: string
+          default: "America/Phoenix"
+          description: Timezone for date formatting
+        filters:
+          type: object
+          description: Additional filters (report-type specific)
+        groupBy:
+          type: array
+          items:
+            type: string
+          description: Fields to group results by
+
+    ReportSyncResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                reportId:
+                  type: string
+                status:
+                  type: string
+                  example: "COMPLETED"
+                downloadUrl:
+                  type: string
+                  format: uri
+                fileSize:
+                  type: integer
+                recordCount:
+                  type: integer
+                expiresAt:
+                  type: string
+                  format: date-time
+
+    ReportAsyncResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                reportId:
+                  type: string
+                status:
+                  type: string
+                  example: "QUEUED"
+                estimatedCompletionTime:
+                  type: string
+                  format: date-time
+                statusUrl:
+                  type: string
+                  format: uri
+
+    ReportStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                reportId:
+                  type: string
+                status:
+                  type: string
+                  enum: [QUEUED, PROCESSING, COMPLETED, FAILED]
+                progress:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                queuedAt:
+                  type: string
+                  format: date-time
+                processedAt:
+                  type: string
+                  format: date-time
+                completedAt:
+                  type: string
+                  format: date-time
+                downloadUrl:
+                  type: string
+                  format: uri
+                fileSize:
+                  type: integer
+                recordCount:
+                  type: integer
+                expiresAt:
+                  type: string
+                  format: date-time
+                error:
+                  type: string
+                  description: Error message if status is FAILED
+
+    GameAnalyticsResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                totalGames:
+                  type: integer
+                completedGames:
+                  type: integer
+                cancelledGames:
+                  type: integer
+                upcomingGames:
+                  type: integer
+                averageScore:
+                  type: number
+                highestScoringGame:
+                  type: object
+                  properties:
+                    homeTeam:
+                      type: string
+                    awayTeam:
+                      type: string
+                    homeScore:
+                      type: integer
+                    awayScore:
+                      type: integer
+                    date:
+                      type: string
+                      format: date-time
+                gamesByType:
+                  type: object
+                  properties:
+                    regular:
+                      type: integer
+                    playoff:
+                      type: integer
+                    championship:
+                      type: integer
+                gamesByVenue:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      venue:
+                        type: string
+                      games:
+                        type: integer
+
+    FinancialAnalyticsResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                totalRevenue:
+                  type: number
+                  format: float
+                totalExpenses:
+                  type: number
+                  format: float
+                netProfit:
+                  type: number
+                  format: float
+                profitMargin:
+                  type: number
+                  format: float
+                revenueBySource:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    format: float
+                expensesByCategory:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    format: float
+
+    BatchExportRequest:
+      type: object
+      required:
+        - exports
+      properties:
+        exports:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: object
+            required:
+              - reportType
+              - format
+            properties:
+              reportType:
+                type: string
+                enum: [games, teams, players, standings, officials, financial, venues]
+              format:
+                type: string
+                enum: [CSV, JSON, PDF, XLSX]
+              startDate:
+                type: string
+                format: date-time
+              endDate:
+                type: string
+                format: date-time
+              filters:
+                type: object
+        compressionFormat:
+          type: string
+          enum: [zip, tar.gz]
+          default: zip
+
+    BatchExportResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                batchId:
+                  type: string
+                  format: uuid
+                status:
+                  type: string
+                  example: "PROCESSING"
+                totalExports:
+                  type: integer
+                statusUrl:
+                  type: string
+                  format: uri
+
+    BatchStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                batchId:
+                  type: string
+                  format: uuid
+                status:
+                  type: string
+                  enum: [PROCESSING, COMPLETED, FAILED, PARTIAL]
+                totalExports:
+                  type: integer
+                completedExports:
+                  type: integer
+                failedExports:
+                  type: integer
+                downloadUrl:
+                  type: string
+                  format: uri
+                expiresAt:
+                  type: string
+                  format: date-time
+
+    BaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              description: Error message
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+                  value:
+                    type: string
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Reports
+    description: Async report generation and management
+  - name: Direct Exports
+    description: Direct data export endpoints for small datasets
+  - name: Analytics
+    description: Analytics and insights endpoints  
+  - name: Batch Export
+    description: Batch processing for multiple exports

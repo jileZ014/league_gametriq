@@ -1,0 +1,1852 @@
+openapi: 3.0.3
+info:
+  title: Basketball League Management Platform API
+  description: |
+    Comprehensive API specification for the Basketball League Management Platform Phase 2.
+    
+    This API provides endpoints for managing youth basketball leagues, including:
+    - Multi-tenant league operations
+    - User management with COPPA compliance
+    - Game scheduling and live scoring
+    - Payment processing and registration
+    - Real-time notifications and communication
+    - SafeSport integration for background checks
+    - Statistics and analytics reporting
+    
+    ## Authentication
+    - OAuth 2.0 with OpenID Connect
+    - JWT tokens for API access
+    - Role-based access control (RBAC)
+    - Multi-factor authentication support
+    
+    ## Rate Limiting
+    - Standard: 1000 requests/hour
+    - Premium: 10000 requests/hour
+    - Burst: 100 requests/minute
+    
+    ## Versioning
+    - URL versioning: `/v1/`, `/v2/`
+    - Header versioning: `API-Version: v1`
+    - Backward compatibility guaranteed for 2 major versions
+    
+  version: "1.0.0"
+  contact:
+    name: Gametriq League App API Team
+    email: api-support@gametriq.com
+    url: https://docs.gametriq.com
+  license:
+    name: Proprietary
+    url: https://gametriq.com/license
+  termsOfService: https://gametriq.com/terms
+
+servers:
+  - url: https://api.gametriq.com/v1
+    description: Production server
+  - url: https://staging-api.gametriq.com/v1
+    description: Staging server
+  - url: https://dev-api.gametriq.com/v1
+    description: Development server
+
+security:
+  - OAuth2:
+      - read
+      - write
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+paths:
+  # ========================================
+  # AUTHENTICATION & USER MANAGEMENT
+  # ========================================
+  
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User authentication
+      description: Authenticate user and return JWT tokens
+      operationId: authenticateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: coach@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                mfaToken:
+                  type: string
+                  description: Multi-factor authentication token
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Refresh JWT access token using refresh token
+      operationId: refreshToken
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: List users
+      description: Get paginated list of users with filtering
+      operationId: listUsers
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [league_admin, coach, parent, player, referee, scorekeeper]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, pending, suspended]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Users
+      summary: Create user
+      description: Create new user with COPPA compliance checks
+      operationId: createUser
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      description: Retrieve user details by ID
+      operationId: getUserById
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Users
+      summary: Update user
+      description: Update user information with privacy controls
+      operationId: updateUser
+      security:
+        - OAuth2: [write]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      description: Soft delete user with data retention policies
+      operationId: deleteUser
+      security:
+        - OAuth2: [write]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ========================================
+  # LEAGUE MANAGEMENT
+  # ========================================
+
+  /leagues:
+    get:
+      tags:
+        - Leagues
+      summary: List leagues
+      description: Get paginated list of leagues
+      operationId: listLeagues
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: season
+          in: query
+          schema:
+            type: string
+        - name: ageGroup
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, registration_open, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Leagues retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/League'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Leagues
+      summary: Create league
+      description: Create new basketball league
+      operationId: createLeague
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeagueRequest'
+      responses:
+        '201':
+          description: League created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/League'
+
+  /leagues/{leagueId}:
+    get:
+      tags:
+        - Leagues
+      summary: Get league by ID
+      description: Retrieve league details including teams and schedule
+      operationId: getLeagueById
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: leagueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: League retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueDetails'
+
+  /leagues/{leagueId}/teams:
+    get:
+      tags:
+        - Teams
+      summary: List teams in league
+      description: Get all teams in a specific league
+      operationId: getTeamsByLeague
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: leagueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Teams retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+
+    post:
+      tags:
+        - Teams
+      summary: Create team
+      description: Create new team in league
+      operationId: createTeam
+      security:
+        - OAuth2: [write]
+      parameters:
+        - name: leagueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+      responses:
+        '201':
+          description: Team created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+
+  # ========================================
+  # GAME MANAGEMENT & SCHEDULING
+  # ========================================
+
+  /games:
+    get:
+      tags:
+        - Games
+      summary: List games
+      description: Get games with filtering and pagination
+      operationId: listGames
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: leagueId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: teamId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled, postponed]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: venue
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Games retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Game'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Games
+      summary: Schedule game
+      description: Schedule new game with venue and officials
+      operationId: scheduleGame
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleGameRequest'
+      responses:
+        '201':
+          description: Game scheduled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+
+  /games/{gameId}:
+    get:
+      tags:
+        - Games
+      summary: Get game details
+      description: Get comprehensive game information including live score
+      operationId: getGameById
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Game details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameDetails'
+
+  /games/{gameId}/live:
+    get:
+      tags:
+        - Games
+      summary: Get live game data
+      description: WebSocket endpoint for real-time game updates
+      operationId: getLiveGameData
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Live game data stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveGameData'
+
+  /games/{gameId}/score:
+    post:
+      tags:
+        - Games
+      summary: Update game score
+      description: Update live game score and statistics
+      operationId: updateGameScore
+      security:
+        - OAuth2: [write]
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreUpdate'
+      responses:
+        '200':
+          description: Score updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameScore'
+
+  # ========================================
+  # PAYMENT & REGISTRATION
+  # ========================================
+
+  /payments/setup-intent:
+    post:
+      tags:
+        - Payments
+      summary: Create payment setup intent
+      description: Create Stripe setup intent for payment method registration
+      operationId: createSetupIntent
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                  description: Stripe customer ID
+                usage:
+                  type: string
+                  enum: [off_session, on_session]
+                  default: off_session
+      responses:
+        '200':
+          description: Setup intent created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSecret:
+                    type: string
+                  setupIntentId:
+                    type: string
+
+  /payments/payment-intent:
+    post:
+      tags:
+        - Payments
+      summary: Create payment intent
+      description: Create Stripe payment intent for registration fees
+      operationId: createPaymentIntent
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '200':
+          description: Payment intent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentIntent'
+
+  /payments/webhooks/stripe:
+    post:
+      tags:
+        - Payments
+      summary: Stripe webhook endpoint
+      description: Handle Stripe webhook events
+      operationId: handleStripeWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed successfully
+
+  /registrations:
+    get:
+      tags:
+        - Registrations
+      summary: List registrations
+      description: Get player registrations with payment status
+      operationId: listRegistrations
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: leagueId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: playerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, paid, cancelled, refunded]
+      responses:
+        '200':
+          description: Registrations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registration'
+
+    post:
+      tags:
+        - Registrations
+      summary: Create registration
+      description: Register player for league with payment processing
+      operationId: createRegistration
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRegistrationRequest'
+      responses:
+        '201':
+          description: Registration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registration'
+
+  # ========================================
+  # NOTIFICATIONS
+  # ========================================
+
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: Get user notifications with read status
+      operationId: listNotifications
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [game_reminder, score_update, registration_confirm, payment_due]
+        - name: read
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+    post:
+      tags:
+        - Notifications
+      summary: Send notification
+      description: Send notification via email, SMS, or push
+      operationId: sendNotification
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendNotificationRequest'
+      responses:
+        '202':
+          description: Notification queued for delivery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+
+  /notifications/{notificationId}/read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Mark specific notification as read
+      operationId: markNotificationRead
+      security:
+        - OAuth2: [write]
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Notification marked as read
+
+  # ========================================
+  # INTEGRATION ENDPOINTS
+  # ========================================
+
+  /integrations/calendar/sync:
+    post:
+      tags:
+        - Integrations
+      summary: Sync with calendar
+      description: Synchronize games with Google Calendar or Outlook
+      operationId: syncCalendar
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                  enum: [google, outlook]
+                calendarId:
+                  type: string
+                leagueId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Calendar sync initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  syncId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [initiated, in_progress, completed, failed]
+
+  /integrations/safesport/check:
+    post:
+      tags:
+        - Integrations
+      summary: SafeSport background check
+      description: Initiate SafeSport background check for coaches
+      operationId: initiateSafeSportCheck
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                dateOfBirth:
+                  type: string
+                  format: date
+                ssn:
+                  type: string
+                  description: Encrypted SSN for background check
+      responses:
+        '202':
+          description: Background check initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [initiated, in_progress, completed, failed]
+
+  /integrations/weather:
+    get:
+      tags:
+        - Integrations
+      summary: Get weather data
+      description: Get weather information for game safety decisions
+      operationId: getWeatherData
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: location
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Weather data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherData'
+
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.gametriq.com/oauth/authorize
+          tokenUrl: https://auth.gametriq.com/oauth/token
+          scopes:
+            read: Read access to resources
+            write: Write access to resources
+            admin: Administrative access
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Schemas
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - expiresIn
+        - user
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: Refresh token for token renewal
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+        tokenType:
+          type: string
+          default: Bearer
+        user:
+          $ref: '#/components/schemas/User'
+
+    TokenResponse:
+      type: object
+      required:
+        - accessToken
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+        tokenType:
+          type: string
+          default: Bearer
+
+    # User Management Schemas
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - tenantId
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [league_admin, coach, parent, player, referee, scorekeeper]
+        tenantId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, inactive, pending, suspended]
+        preferences:
+          type: object
+          properties:
+            notifications:
+              type: object
+              properties:
+                email:
+                  type: boolean
+                sms:
+                  type: boolean
+                push:
+                  type: boolean
+        coppaConsent:
+          type: object
+          properties:
+            provided:
+              type: boolean
+            parentEmail:
+              type: string
+              format: email
+            consentDate:
+              type: string
+              format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+        - role
+        - tenantId
+      properties:
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [league_admin, coach, parent, player, referee, scorekeeper]
+        tenantId:
+          type: string
+          format: uuid
+        dateOfBirth:
+          type: string
+          format: date
+        parentEmail:
+          type: string
+          format: email
+          description: Required for players under 13 (COPPA compliance)
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        preferences:
+          type: object
+
+    # League Management Schemas
+    League:
+      type: object
+      required:
+        - id
+        - name
+        - tenantId
+        - season
+        - status
+        - ageGroup
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        tenantId:
+          type: string
+          format: uuid
+        season:
+          type: string
+        status:
+          type: string
+          enum: [draft, registration_open, in_progress, completed, cancelled]
+        ageGroup:
+          type: string
+          enum: [u8, u10, u12, u14, u16, u18, adult]
+        maxTeams:
+          type: integer
+        registrationFee:
+          type: number
+          format: decimal
+        registrationDeadline:
+          type: string
+          format: date
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        rules:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+
+    LeagueDetails:
+      allOf:
+        - $ref: '#/components/schemas/League'
+        - type: object
+          properties:
+            teams:
+              type: array
+              items:
+                $ref: '#/components/schemas/Team'
+            games:
+              type: array
+              items:
+                $ref: '#/components/schemas/Game'
+            standings:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeamStanding'
+
+    CreateLeagueRequest:
+      type: object
+      required:
+        - name
+        - tenantId
+        - season
+        - ageGroup
+        - registrationFee
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tenantId:
+          type: string
+          format: uuid
+        season:
+          type: string
+        ageGroup:
+          type: string
+          enum: [u8, u10, u12, u14, u16, u18, adult]
+        maxTeams:
+          type: integer
+        registrationFee:
+          type: number
+          format: decimal
+        registrationDeadline:
+          type: string
+          format: date
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    # Team Management Schemas
+    Team:
+      type: object
+      required:
+        - id
+        - name
+        - leagueId
+        - coachId
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        leagueId:
+          type: string
+          format: uuid
+        coachId:
+          type: string
+          format: uuid
+        assistantCoaches:
+          type: array
+          items:
+            type: string
+            format: uuid
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Player'
+        wins:
+          type: integer
+          default: 0
+        losses:
+          type: integer
+          default: 0
+        ties:
+          type: integer
+          default: 0
+
+    CreateTeamRequest:
+      type: object
+      required:
+        - name
+        - coachId
+      properties:
+        name:
+          type: string
+        coachId:
+          type: string
+          format: uuid
+
+    Player:
+      type: object
+      required:
+        - id
+        - userId
+        - teamId
+        - jerseyNumber
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+        jerseyNumber:
+          type: integer
+        position:
+          type: string
+          enum: [PG, SG, SF, PF, C]
+        stats:
+          $ref: '#/components/schemas/PlayerStats'
+
+    TeamStanding:
+      type: object
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        wins:
+          type: integer
+        losses:
+          type: integer
+        ties:
+          type: integer
+        pointsFor:
+          type: integer
+        pointsAgainst:
+          type: integer
+        winPercentage:
+          type: number
+          format: decimal
+
+    # Game Management Schemas
+    Game:
+      type: object
+      required:
+        - id
+        - leagueId
+        - homeTeamId
+        - awayTeamId
+        - scheduledAt
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        leagueId:
+          type: string
+          format: uuid
+        homeTeamId:
+          type: string
+          format: uuid
+        awayTeamId:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: string
+          format: date-time
+        venue:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled, postponed]
+        referees:
+          type: array
+          items:
+            type: string
+            format: uuid
+        score:
+          $ref: '#/components/schemas/GameScore'
+        createdAt:
+          type: string
+          format: date-time
+
+    GameDetails:
+      allOf:
+        - $ref: '#/components/schemas/Game'
+        - type: object
+          properties:
+            homeTeam:
+              $ref: '#/components/schemas/Team'
+            awayTeam:
+              $ref: '#/components/schemas/Team'
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/GameEvent'
+            statistics:
+              $ref: '#/components/schemas/GameStatistics'
+
+    ScheduleGameRequest:
+      type: object
+      required:
+        - leagueId
+        - homeTeamId
+        - awayTeamId
+        - scheduledAt
+      properties:
+        leagueId:
+          type: string
+          format: uuid
+        homeTeamId:
+          type: string
+          format: uuid
+        awayTeamId:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: string
+          format: date-time
+        venue:
+          type: string
+        referees:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    GameScore:
+      type: object
+      properties:
+        homeScore:
+          type: integer
+          default: 0
+        awayScore:
+          type: integer
+          default: 0
+        quarter:
+          type: integer
+          minimum: 1
+          maximum: 4
+        timeRemaining:
+          type: string
+          pattern: '^([0-9]|[0-5][0-9]):[0-5][0-9]$'
+        overtime:
+          type: boolean
+          default: false
+
+    ScoreUpdate:
+      type: object
+      required:
+        - homeScore
+        - awayScore
+      properties:
+        homeScore:
+          type: integer
+        awayScore:
+          type: integer
+        quarter:
+          type: integer
+        timeRemaining:
+          type: string
+        event:
+          $ref: '#/components/schemas/GameEvent'
+
+    GameEvent:
+      type: object
+      required:
+        - type
+        - timestamp
+        - quarter
+      properties:
+        type:
+          type: string
+          enum: [basket, foul, timeout, substitution, quarter_end, game_end]
+        timestamp:
+          type: string
+          format: date-time
+        quarter:
+          type: integer
+        playerId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        points:
+          type: integer
+
+    LiveGameData:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        score:
+          $ref: '#/components/schemas/GameScore'
+        lastEvent:
+          $ref: '#/components/schemas/GameEvent'
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    GameStatistics:
+      type: object
+      properties:
+        homeTeamStats:
+          $ref: '#/components/schemas/TeamGameStats'
+        awayTeamStats:
+          $ref: '#/components/schemas/TeamGameStats'
+
+    TeamGameStats:
+      type: object
+      properties:
+        fieldGoals:
+          type: integer
+        fieldGoalAttempts:
+          type: integer
+        threePointers:
+          type: integer
+        threePointAttempts:
+          type: integer
+        freeThrows:
+          type: integer
+        freeThrowAttempts:
+          type: integer
+        rebounds:
+          type: integer
+        assists:
+          type: integer
+        turnovers:
+          type: integer
+        fouls:
+          type: integer
+
+    PlayerStats:
+      type: object
+      properties:
+        gamesPlayed:
+          type: integer
+        points:
+          type: integer
+        rebounds:
+          type: integer
+        assists:
+          type: integer
+        steals:
+          type: integer
+        blocks:
+          type: integer
+        turnovers:
+          type: integer
+        fouls:
+          type: integer
+
+    # Payment Schemas
+    CreatePaymentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - registrationId
+      properties:
+        amount:
+          type: integer
+          description: Amount in cents
+        currency:
+          type: string
+          default: usd
+        registrationId:
+          type: string
+          format: uuid
+        paymentMethodId:
+          type: string
+          description: Stripe payment method ID
+        customerId:
+          type: string
+          description: Stripe customer ID
+
+    PaymentIntent:
+      type: object
+      properties:
+        id:
+          type: string
+        clientSecret:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [requires_payment_method, requires_confirmation, requires_action, processing, requires_capture, canceled, succeeded]
+
+    # Registration Schemas
+    Registration:
+      type: object
+      required:
+        - id
+        - playerId
+        - leagueId
+        - status
+        - registrationDate
+      properties:
+        id:
+          type: string
+          format: uuid
+        playerId:
+          type: string
+          format: uuid
+        leagueId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, paid, cancelled, refunded]
+        registrationDate:
+          type: string
+          format: date-time
+        paymentId:
+          type: string
+        amount:
+          type: number
+          format: decimal
+        waiverSigned:
+          type: boolean
+        medicalFormSubmitted:
+          type: boolean
+
+    CreateRegistrationRequest:
+      type: object
+      required:
+        - playerId
+        - leagueId
+      properties:
+        playerId:
+          type: string
+          format: uuid
+        leagueId:
+          type: string
+          format: uuid
+        emergencyContact:
+          type: object
+          properties:
+            name:
+              type: string
+            phone:
+              type: string
+            relationship:
+              type: string
+        medicalInfo:
+          type: object
+          properties:
+            allergies:
+              type: string
+            medications:
+              type: string
+            conditions:
+              type: string
+
+    # Notification Schemas
+    Notification:
+      type: object
+      required:
+        - id
+        - userId
+        - type
+        - message
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [game_reminder, score_update, registration_confirm, payment_due, weather_alert]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+        scheduledFor:
+          type: string
+          format: date-time
+
+    SendNotificationRequest:
+      type: object
+      required:
+        - recipients
+        - type
+        - message
+      properties:
+        recipients:
+          type: array
+          items:
+            type: string
+            format: uuid
+        type:
+          type: string
+          enum: [email, sms, push, all]
+        title:
+          type: string
+        message:
+          type: string
+        scheduledFor:
+          type: string
+          format: date-time
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+          default: normal
+
+    NotificationResponse:
+      type: object
+      properties:
+        notificationId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, sent, failed]
+        recipients:
+          type: integer
+          description: Number of recipients
+
+    # Integration Schemas
+    WeatherData:
+      type: object
+      properties:
+        location:
+          type: string
+        date:
+          type: string
+          format: date
+        temperature:
+          type: number
+          description: Temperature in Fahrenheit
+        humidity:
+          type: number
+          description: Humidity percentage
+        heatIndex:
+          type: number
+          description: Heat index in Fahrenheit
+        conditions:
+          type: string
+        alerts:
+          type: array
+          items:
+            type: string
+        safetyRecommendation:
+          type: string
+          enum: [safe, caution, warning, dangerous]
+
+    # Common Schemas
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "INVALID_INPUT"
+            message: "The provided input parameters are invalid"
+
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "UNAUTHORIZED"
+            message: "Authentication credentials are required"
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "FORBIDDEN"
+            message: "Insufficient permissions to access this resource"
+
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "NOT_FOUND"
+            message: "The requested resource was not found"
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "RATE_LIMIT_EXCEEDED"
+            message: "API rate limit exceeded"
+
+  examples:
+    UserExample:
+      summary: Example user
+      value:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        email: "coach@example.com"
+        firstName: "John"
+        lastName: "Smith"
+        role: "coach"
+        tenantId: "123e4567-e89b-12d3-a456-426614174001"
+        status: "active"
+        createdAt: "2025-01-01T00:00:00Z"
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management operations
+  - name: Leagues
+    description: League management operations
+  - name: Teams
+    description: Team management operations
+  - name: Games
+    description: Game scheduling and management
+  - name: Payments
+    description: Payment processing and registration fees
+  - name: Registrations
+    description: Player registration management
+  - name: Notifications
+    description: Notification and communication services
+  - name: Integrations
+    description: Third-party service integrations
+
+externalDocs:
+  description: Find out more about Basketball League Management Platform
+  url: https://docs.gametriq.com

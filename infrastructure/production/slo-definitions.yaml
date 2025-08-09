@@ -1,0 +1,376 @@
+# GameTriq Basketball League Management Platform
+# Service Level Objectives (SLO) Definitions
+# Production Environment - 99.9% Uptime Target with <100ms P95 Response Times
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slo-definitions
+  namespace: gametriq-production
+  labels:
+    app: gametriq-monitoring
+    environment: production
+data:
+  slo-config.yaml: |
+    # Global SLO Configuration
+    global:
+      measurement_window: "30d"  # 30-day rolling window
+      error_budget_policy: "burn_rate"
+      alert_threshold: 2.0  # 2x burn rate
+      
+    # Service Level Objectives
+    services:
+      # Schedule Service SLOs
+      schedule-service:
+        availability:
+          target: 99.9  # 43.8 minutes downtime per month
+          measurement:
+            success_criteria:
+              - http_status: [200, 201, 202]
+              - response_time_p95: 100ms
+            failure_criteria:
+              - http_status: [500, 502, 503, 504]
+              - response_time_p95: 500ms
+              - timeout: 30s
+        
+        performance:
+          public_endpoints:
+            target_p95: 120ms  # Public portal queries
+            target_p99: 250ms
+            measurement_window: "5m"
+          
+          schedule_generation:
+            target_p95: 2000ms  # Schedule generation operations
+            target_p99: 5000ms
+            timeout: 30000ms
+          
+          officials_assignment:
+            target_p95: 300ms  # Officials assignment algorithm
+            target_p99: 1000ms
+            timeout: 10000ms
+        
+        error_rate:
+          target: 0.1  # 0.1% error rate
+          measurement:
+            window: "5m"
+            exclude_status_codes: [400, 401, 403, 404]
+      
+      # Game Service SLOs  
+      game-service:
+        availability:
+          target: 99.9
+          measurement:
+            success_criteria:
+              - http_status: [200, 201, 202]
+              - response_time_p95: 100ms
+        
+        performance:
+          bracket_generation:
+            target_p95: 2000ms  # Bracket generation (32 teams)
+            target_p99: 5000ms
+            timeout: 30000ms
+            
+          game_updates:
+            target_p95: 100ms  # Real-time game updates
+            target_p99: 200ms
+            timeout: 5000ms
+            
+          websocket_latency:
+            target_p95: 50ms   # WebSocket message delivery
+            target_p99: 100ms
+        
+        error_rate:
+          target: 0.1
+          measurement:
+            window: "5m"
+      
+      # Reporting Service SLOs
+      reporting-service:
+        availability:
+          target: 99.5  # Slightly lower due to heavy processing
+          measurement:
+            success_criteria:
+              - http_status: [200, 201, 202]
+        
+        performance:
+          export_generation:
+            target_p95: 10000ms  # 10s for export generation
+            target_p99: 30000ms
+            timeout: 300000ms    # 5 minute timeout
+            
+          direct_exports:
+            target_p95: 2000ms   # Direct small exports
+            target_p99: 5000ms
+            timeout: 30000ms
+            
+          analytics_queries:
+            target_p95: 500ms    # Analytics endpoints
+            target_p99: 1000ms
+            timeout: 10000ms
+        
+        error_rate:
+          target: 0.5  # Higher tolerance for complex operations
+          measurement:
+            window: "5m"
+        
+        # Queue processing SLOs
+        queue_processing:
+          job_processing_time:
+            target_p95: 30000ms  # 30s for background jobs
+            target_p99: 120000ms # 2 minutes max
+          
+          queue_depth:
+            warning_threshold: 100
+            critical_threshold: 500
+            
+          job_success_rate:
+            target: 99.0  # 99% job success rate
+      
+      # Auth Service SLOs
+      auth-service:
+        availability:
+          target: 99.95  # Higher availability for auth
+          measurement:
+            success_criteria:
+              - http_status: [200, 201]
+        
+        performance:
+          authentication:
+            target_p95: 50ms   # Token verification
+            target_p99: 100ms
+            timeout: 5000ms
+            
+          login_operations:
+            target_p95: 200ms  # Login with COPPA checks
+            target_p99: 500ms
+            timeout: 10000ms
+        
+        error_rate:
+          target: 0.05  # Very low error tolerance
+          measurement:
+            window: "5m"
+      
+      # User Service SLOs
+      user-service:
+        availability:
+          target: 99.9
+        
+        performance:
+          profile_operations:
+            target_p95: 100ms
+            target_p99: 200ms
+            
+          registration:
+            target_p95: 500ms  # Including COPPA verification
+            target_p99: 1000ms
+        
+        error_rate:
+          target: 0.1
+      
+      # Payment Service SLOs
+      payment-service:
+        availability:
+          target: 99.95  # Critical for revenue
+        
+        performance:
+          payment_processing:
+            target_p95: 2000ms  # Payment gateway latency
+            target_p99: 5000ms
+            timeout: 30000ms
+            
+          refund_processing:
+            target_p95: 1000ms
+            target_p99: 3000ms
+        
+        error_rate:
+          target: 0.05
+      
+      # Notification Service SLOs
+      notification-service:
+        availability:
+          target: 99.8
+        
+        performance:
+          notification_delivery:
+            target_p95: 1000ms
+            target_p99: 3000ms
+            
+          bulk_notifications:
+            target_p95: 5000ms
+            target_p99: 15000ms
+        
+        error_rate:
+          target: 0.2  # Some notification failures acceptable
+    
+    # Infrastructure SLOs
+    infrastructure:
+      database:
+        postgresql:
+          availability: 99.95
+          connection_latency_p95: 10ms
+          query_latency_p95: 50ms
+          max_connections_usage: 80%
+          
+        redis:
+          availability: 99.9
+          latency_p95: 1ms
+          memory_usage: 80%
+          
+      message_queues:
+        rabbitmq:
+          availability: 99.9
+          message_latency_p95: 10ms
+          queue_depth_warning: 1000
+          queue_depth_critical: 5000
+          
+      storage:
+        s3:
+          availability: 99.9
+          upload_latency_p95: 500ms
+          download_latency_p95: 200ms
+          
+      networking:
+        load_balancer:
+          availability: 99.95
+          latency_p95: 10ms
+          
+        cdn:
+          availability: 99.9
+          cache_hit_rate: 80%
+          latency_p95: 50ms
+    
+    # Error Budget Policies
+    error_budgets:
+      # 30-day error budget calculations
+      schedule-service:
+        monthly_budget: 43.8  # minutes (0.1% of 30 days)
+        burn_rate_alerts:
+          - threshold: 2.0    # 2x burn rate
+            window: "1h"
+            severity: "warning"
+          - threshold: 10.0   # 10x burn rate  
+            window: "5m"
+            severity: "critical"
+        
+      game-service:
+        monthly_budget: 43.8  # minutes
+        burn_rate_alerts:
+          - threshold: 2.0
+            window: "1h"
+            severity: "warning"
+          - threshold: 10.0
+            window: "5m"
+            severity: "critical"
+      
+      reporting-service:
+        monthly_budget: 216  # minutes (0.5% of 30 days)
+        burn_rate_alerts:
+          - threshold: 2.0
+            window: "2h"
+            severity: "warning"
+          - threshold: 10.0
+            window: "10m"
+            severity: "critical"
+    
+    # Alerting Rules
+    alerts:
+      slo_violations:
+        # Availability alerts
+        service_down:
+          condition: "availability < 99.9"
+          duration: "2m"
+          severity: "critical"
+          channels: ["pagerduty", "slack", "email"]
+          
+        high_error_rate:
+          condition: "error_rate > 1.0"
+          duration: "5m"
+          severity: "warning"
+          channels: ["slack", "email"]
+          
+        # Performance alerts
+        high_latency:
+          condition: "latency_p95 > target_p95 * 1.5"
+          duration: "10m"
+          severity: "warning"
+          channels: ["slack", "email"]
+          
+        very_high_latency:
+          condition: "latency_p95 > target_p95 * 3.0"
+          duration: "2m"
+          severity: "critical"
+          channels: ["pagerduty", "slack"]
+          
+        # Error budget alerts
+        budget_exhausted:
+          condition: "error_budget_remaining < 10"
+          severity: "critical"
+          channels: ["pagerduty", "slack"]
+          
+        budget_warning:
+          condition: "error_budget_remaining < 25"
+          severity: "warning"  
+          channels: ["slack", "email"]
+    
+    # Monitoring Configuration
+    monitoring:
+      collection_interval: "15s"
+      retention_period: "90d"
+      
+      dashboards:
+        slo_overview:
+          panels:
+            - availability_by_service
+            - error_budget_remaining
+            - latency_percentiles
+            - error_rates
+            - alert_summary
+            
+        service_detail:
+          panels:
+            - request_rate
+            - latency_heatmap
+            - error_breakdown
+            - dependency_health
+            - resource_utilization
+    
+    # Reporting
+    reporting:
+      slo_reports:
+        frequency: "weekly"
+        recipients: ["engineering@gametriq.com", "ops@gametriq.com"]
+        format: "pdf"
+        
+      error_budget_reports:
+        frequency: "monthly"
+        recipients: ["leadership@gametriq.com", "engineering@gametriq.com"]
+        
+      incident_correlation:
+        enabled: true
+        retention_days: 90
+        
+    # Business Impact Mapping
+    business_impact:
+      critical_user_journeys:
+        parent_registration:
+          services: ["auth-service", "user-service", "payment-service"]
+          availability_target: 99.95
+          
+        game_scheduling:
+          services: ["schedule-service", "game-service"]
+          availability_target: 99.9
+          
+        live_scoring:
+          services: ["game-service"]
+          latency_target: 100ms
+          availability_target: 99.9
+          
+        public_portal:
+          services: ["schedule-service"]
+          latency_target: 120ms
+          availability_target: 99.8
+          
+      revenue_impact:
+        high: ["payment-service", "user-service"]
+        medium: ["schedule-service", "game-service"]
+        low: ["notification-service", "reporting-service"]

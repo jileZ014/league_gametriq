@@ -1,0 +1,875 @@
+openapi: 3.0.3
+info:
+  title: GameTriq Schedule Service API
+  description: |
+    Comprehensive schedule management service for Basketball League Management Platform.
+    
+    Features:
+    - Season and Division Management
+    - Venue and Court Management
+    - Round-Robin Schedule Generation
+    - Conflict Detection and Resolution
+    - Phoenix Heat Policy Enforcement
+    - Calendar Views and ICS Export
+    
+    Performance Targets:
+    - Schedule queries: <150ms P95
+    - Schedule generation: <5s for 100 games
+    - Conflict detection: <500ms
+  version: 1.0.0
+  contact:
+    name: GameTriq Development Team
+    email: api@gametriq.com
+  license:
+    name: Proprietary
+servers:
+  - url: http://localhost:3003/api/v1
+    description: Development server
+  - url: https://api.gametriq.com/schedule/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check endpoint
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # Season Management
+  /seasons:
+    get:
+      tags: [Seasons]
+      summary: Get all seasons
+      parameters:
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/LeagueIdParam'
+      responses:
+        '200':
+          description: List of seasons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonsResponse'
+    post:
+      tags: [Seasons]
+      summary: Create a new season
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSeasonRequest'
+      responses:
+        '201':
+          description: Season created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonResponse'
+
+  /seasons/{seasonId}:
+    get:
+      tags: [Seasons]
+      summary: Get season by ID
+      parameters:
+        - $ref: '#/components/parameters/SeasonIdParam'
+      responses:
+        '200':
+          description: Season details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonResponse'
+    put:
+      tags: [Seasons]
+      summary: Update season
+      parameters:
+        - $ref: '#/components/parameters/SeasonIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSeasonRequest'
+      responses:
+        '200':
+          description: Season updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonResponse'
+    delete:
+      tags: [Seasons]
+      summary: Delete season
+      parameters:
+        - $ref: '#/components/parameters/SeasonIdParam'
+      responses:
+        '200':
+          description: Season deleted successfully
+
+  # Schedule Generation
+  /seasons/{seasonId}/generate-schedule:
+    post:
+      tags: [Schedule Generation]
+      summary: Generate schedule for season
+      parameters:
+        - $ref: '#/components/parameters/SeasonIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateScheduleRequest'
+      responses:
+        '200':
+          description: Schedule generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleGenerationResponse'
+
+  /seasons/{seasonId}/schedule/export/ics:
+    get:
+      tags: [Schedule Export]
+      summary: Export schedule as ICS calendar file
+      parameters:
+        - $ref: '#/components/parameters/SeasonIdParam'
+      responses:
+        '200':
+          description: ICS calendar file
+          content:
+            text/calendar:
+              schema:
+                type: string
+                format: binary
+
+  # Venue Management
+  /venues:
+    get:
+      tags: [Venues]
+      summary: Get all venues
+      parameters:
+        - name: active
+          in: query
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [INDOOR, OUTDOOR, HYBRID]
+      responses:
+        '200':
+          description: List of venues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VenuesResponse'
+    post:
+      tags: [Venues]
+      summary: Create a new venue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVenueRequest'
+      responses:
+        '201':
+          description: Venue created successfully
+
+  /venues/{venueId}/heat-warnings:
+    get:
+      tags: [Heat Policy]
+      summary: Get heat warnings for venue
+      parameters:
+        - $ref: '#/components/parameters/VenueIdParam'
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Heat warnings for venue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatWarningsResponse'
+
+  # Conflict Detection
+  /schedule/validate:
+    post:
+      tags: [Conflict Detection]
+      summary: Validate schedule for conflicts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateScheduleRequest'
+      responses:
+        '200':
+          description: Schedule validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictValidationResponse'
+
+  /conflicts:
+    get:
+      tags: [Conflict Detection]
+      summary: Get schedule conflicts
+      parameters:
+        - name: season_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, CRITICAL]
+      responses:
+        '200':
+          description: List of conflicts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictsResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    SeasonIdParam:
+      name: seasonId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    VenueIdParam:
+      name: venueId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    StatusParam:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [UPCOMING, REGISTRATION_OPEN, ACTIVE, COMPLETED]
+    
+    LeagueIdParam:
+      name: league_id
+      in: query
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # Response Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+        service:
+          type: string
+          example: schedule-service
+        version:
+          type: string
+          example: 1.0.0
+        features:
+          type: object
+          properties:
+            scheduling_v1:
+              type: boolean
+            conflict_detection:
+              type: boolean
+            heat_policy:
+              type: boolean
+
+    Season:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        league_id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Spring 2025"
+        slug:
+          type: string
+          example: "spring-2025"
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        registration_start:
+          type: string
+          format: date
+        registration_deadline:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [UPCOMING, REGISTRATION_OPEN, ACTIVE, COMPLETED]
+        registration_fee:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          example: USD
+        settings:
+          type: object
+        max_games_per_team:
+          type: integer
+        playoffs_enabled:
+          type: boolean
+        playoff_format:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Venue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Phoenix Community Center"
+        venue_code:
+          type: string
+          example: "PCC01"
+        type:
+          type: string
+          enum: [INDOOR, OUTDOOR, HYBRID]
+        address:
+          type: string
+        city:
+          type: string
+          example: "Phoenix"
+        state:
+          type: string
+          example: "AZ"
+        zip_code:
+          type: string
+          example: "85001"
+        location:
+          type: object
+          description: GeoJSON Point
+        capacity:
+          type: integer
+        active:
+          type: boolean
+        rental_cost_per_hour:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        accessible:
+          type: boolean
+
+    HeatWarning:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+        warningLevel:
+          type: string
+          enum: [NONE, CAUTION, WARNING, DANGER, EXTREME]
+        temperature:
+          type: number
+        heatIndex:
+          type: number
+        recommendations:
+          type: array
+          items:
+            type: string
+        restrictions:
+          type: array
+          items:
+            type: string
+        automaticCancellation:
+          type: boolean
+        reason:
+          type: string
+
+    ScheduleConflict:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [VENUE_DOUBLE_BOOKING, TEAM_DOUBLE_BOOKING, OFFICIAL_DOUBLE_BOOKING, HEAT_POLICY_VIOLATION]
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        description:
+          type: string
+        affectedGames:
+          type: array
+          items:
+            type: string
+            format: uuid
+        scheduledTime:
+          type: string
+          format: date-time
+        suggestedResolution:
+          type: string
+        resolutionOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResolutionOption'
+
+    ResolutionOption:
+      type: object
+      properties:
+        strategy:
+          type: string
+        description:
+          type: string
+        impact:
+          type: string
+        estimatedEffort:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        alternativeTime:
+          type: string
+          format: date-time
+        alternativeVenue:
+          type: string
+          format: uuid
+        tradeoffs:
+          type: array
+          items:
+            type: string
+
+    # Request Schemas
+    CreateSeasonRequest:
+      type: object
+      required:
+        - name
+        - league_id
+        - start_date
+        - end_date
+        - registration_start
+        - registration_deadline
+        - registration_fee
+        - currency
+      properties:
+        name:
+          type: string
+        league_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        registration_start:
+          type: string
+          format: date
+        registration_deadline:
+          type: string
+          format: date
+        registration_fee:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        max_games_per_team:
+          type: integer
+          default: 20
+        playoffs_enabled:
+          type: boolean
+          default: false
+
+    UpdateSeasonRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        registration_deadline:
+          type: string
+          format: date
+        registration_fee:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [UPCOMING, REGISTRATION_OPEN, ACTIVE, COMPLETED]
+
+    CreateVenueRequest:
+      type: object
+      required:
+        - name
+        - venue_code
+        - type
+        - address
+        - city
+        - state
+        - zip_code
+        - capacity
+      properties:
+        name:
+          type: string
+        venue_code:
+          type: string
+        type:
+          type: string
+          enum: [INDOOR, OUTDOOR, HYBRID]
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip_code:
+          type: string
+        capacity:
+          type: integer
+        rental_cost_per_hour:
+          type: number
+          format: decimal
+        accessible:
+          type: boolean
+          default: true
+
+    GenerateScheduleRequest:
+      type: object
+      required:
+        - divisionIds
+        - teams
+      properties:
+        divisionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamInfo'
+        algorithm:
+          type: string
+          enum: [ROUND_ROBIN, DOUBLE_ROUND_ROBIN]
+          default: ROUND_ROBIN
+        preferredDays:
+          type: array
+          items:
+            type: string
+            enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+          default: [SATURDAY, SUNDAY]
+        preferredTimes:
+          type: array
+          items:
+            type: string
+            pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+          default: ['09:00', '11:00', '13:00', '15:00']
+        gameDurationMinutes:
+          type: integer
+          default: 120
+        enforceHeatPolicy:
+          type: boolean
+          default: true
+
+    TeamInfo:
+      type: object
+      required:
+        - id
+        - name
+        - divisionId
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        divisionId:
+          type: string
+          format: uuid
+        preferredVenues:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    ValidateScheduleRequest:
+      type: object
+      required:
+        - seasonId
+      properties:
+        seasonId:
+          type: string
+          format: uuid
+
+    # Response Collections
+    SeasonsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Season'
+        count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    SeasonResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/Season'
+        timestamp:
+          type: string
+          format: date-time
+
+    VenuesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Venue'
+        count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    HeatWarningsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeatWarning'
+        count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ConflictsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleConflict'
+        count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ConflictValidationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScheduleConflict'
+            hasConflicts:
+              type: boolean
+            criticalConflicts:
+              type: integer
+            highConflicts:
+              type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ScheduleGenerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            games:
+              type: array
+              items:
+                type: object
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScheduleConflict'
+            warnings:
+              type: array
+              items:
+                type: string
+            statistics:
+              type: object
+              properties:
+                totalGames:
+                  type: integer
+                gamesScheduled:
+                  type: integer
+                gamesWithConflicts:
+                  type: integer
+                gamesWithHeatWarnings:
+                  type: integer
+                generationTimeMs:
+                  type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: System
+    description: System health and status
+  - name: Seasons
+    description: Season management operations
+  - name: Divisions
+    description: Division management operations
+  - name: Venues
+    description: Venue and court management
+  - name: Schedule Generation
+    description: Round-robin schedule generation
+  - name: Schedule Export
+    description: Calendar export functionality
+  - name: Conflict Detection
+    description: Schedule conflict detection and resolution
+  - name: Heat Policy
+    description: Phoenix heat policy enforcement

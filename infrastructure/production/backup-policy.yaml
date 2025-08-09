@@ -1,0 +1,236 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-policy-config
+  namespace: gametriq-production
+  labels:
+    app: gametriq-backup
+    environment: production
+data:
+  backup-policy.yaml: |
+    # GameTriq Basketball League Management Platform - Backup Policy
+    # Production-grade backup strategy with point-in-time recovery
+    
+    databases:
+      primary:
+        name: gametriq_production
+        type: postgresql
+        host: gametriq-postgres-primary.gametriq-production.svc.cluster.local
+        port: 5432
+        
+        # Daily automated backups
+        backup_schedule:
+          daily:
+            time: "02:00"  # 2:00 AM Phoenix time (UTC-7/UTC-8)
+            retention_days: 30
+            compression: gzip
+            encryption: true
+            storage_class: STANDARD_IA
+            
+          weekly:
+            day: "sunday"
+            time: "01:00"
+            retention_weeks: 12
+            compression: gzip
+            encryption: true
+            storage_class: STANDARD_IA
+            
+          monthly:
+            day: 1
+            time: "00:00"
+            retention_months: 12
+            compression: gzip
+            encryption: true
+            storage_class: GLACIER
+            
+        # Point-in-time recovery
+        wal_archiving:
+          enabled: true
+          archive_mode: on
+          archive_command: "aws s3 cp %p s3://gametriq-prod-wal-archive/%f"
+          retention_hours: 168  # 7 days
+          
+        # Backup verification
+        verification:
+          enabled: true
+          schedule: "0 6 * * *"  # Daily at 6 AM
+          test_restore: true
+          alert_on_failure: true
+          
+      redis:
+        name: gametriq_redis_production
+        type: redis
+        
+        # Redis persistence with both RDB and AOF
+        persistence:
+          rdb:
+            enabled: true
+            schedule: "0 3 * * *"  # Daily at 3 AM
+            compression: true
+            retention_days: 7
+            
+          aof:
+            enabled: true
+            sync_policy: everysec
+            rewrite_schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+            
+    storage:
+      # Primary backup storage - AWS S3
+      primary:
+        provider: aws_s3
+        bucket: gametriq-prod-backups
+        region: us-west-2
+        
+        # Lifecycle policies
+        lifecycle:
+          transition_to_ia: 30  # days
+          transition_to_glacier: 90  # days
+          transition_to_deep_archive: 365  # days
+          expire_after: 2555  # days (7 years)
+          
+        # Encryption
+        encryption:
+          enabled: true
+          algorithm: AES256
+          kms_key_id: arn:aws:kms:us-west-2:ACCOUNT:key/KEY-ID
+          
+        # Cross-region replication
+        replication:
+          enabled: true
+          destination_bucket: gametriq-prod-backups-replica
+          destination_region: us-east-1
+          
+      # Secondary backup storage - for critical data redundancy
+      secondary:
+        provider: azure_blob
+        container: gametriq-prod-backup-secondary
+        region: westus2
+        retention_days: 90
+        
+    monitoring:
+      # Backup monitoring and alerting
+      alerts:
+        backup_failure:
+          enabled: true
+          channels: [email, slack, pagerduty]
+          escalation_minutes: 30
+          
+        verification_failure:
+          enabled: true
+          channels: [email, slack, pagerduty]
+          escalation_minutes: 15
+          
+        storage_quota_warning:
+          enabled: true
+          threshold_percent: 80
+          channels: [email, slack]
+          
+        replication_lag:
+          enabled: true
+          threshold_minutes: 60
+          channels: [email, slack]
+          
+      metrics:
+        backup_duration: true
+        backup_size: true
+        verification_time: true
+        storage_usage: true
+        success_rate: true
+        
+    disaster_recovery:
+      # RTO/RPO targets
+      targets:
+        rto_minutes: 60  # Recovery Time Objective
+        rpo_minutes: 15  # Recovery Point Objective
+        
+      # Automated disaster recovery testing
+      testing:
+        schedule: "0 2 * * 6"  # Weekly on Saturday at 2 AM
+        restore_test_database: gametriq_dr_test
+        cleanup_after_hours: 4
+        alert_on_failure: true
+        
+      # Multi-region failover
+      failover:
+        secondary_region: us-east-1
+        automated: false  # Manual failover for safety
+        health_checks:
+          - endpoint: https://api.gametriq.com/health
+          - database_connectivity: true
+          - redis_connectivity: true
+          
+    compliance:
+      # Data retention for compliance
+      coppa_compliance:
+        # COPPA requires deletion of child data on request
+        deletion_workflow: enabled
+        verification_required: true
+        audit_trail: true
+        
+      audit:
+        backup_operations: true
+        restore_operations: true
+        deletion_operations: true
+        access_logs: true
+        retention_years: 7
+        
+      encryption:
+        at_rest: required
+        in_transit: required
+        key_rotation_days: 90
+        
+    maintenance:
+      # Regular maintenance schedules
+      cleanup:
+        expired_backups: "0 5 * * *"  # Daily at 5 AM
+        temp_files: "0 */6 * * *"     # Every 6 hours
+        log_rotation: "0 1 * * *"     # Daily at 1 AM
+        
+      optimization:
+        vacuum_schedule: "0 3 * * 0"   # Weekly on Sunday at 3 AM
+        reindex_schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+        statistics_update: "0 2 * * *" # Daily at 2 AM
+        
+      # Backup storage optimization
+      compression:
+        algorithm: gzip
+        level: 6
+        parallel_workers: 4
+        
+    security:
+      access_control:
+        backup_operations: ["backup-operator", "dba"]
+        restore_operations: ["dba", "platform-admin"]
+        deletion_operations: ["platform-admin"]
+        
+      authentication:
+        service_account: gametriq-backup-sa
+        rbac_enabled: true
+        mfa_required: true
+        
+      network:
+        backup_network: gametriq-backup-vpc
+        encryption_in_transit: true
+        private_endpoints: true
+        
+    notifications:
+      channels:
+        email:
+          addresses: ["ops@gametriq.com", "dba@gametriq.com"]
+          severity_levels: [critical, warning]
+          
+        slack:
+          webhook_url: "https://hooks.slack.com/services/WEBHOOK_URL"
+          channel: "#ops-alerts"
+          severity_levels: [critical, warning, info]
+          
+        pagerduty:
+          integration_key: "PAGERDUTY_INTEGRATION_KEY"
+          severity_levels: [critical]
+          escalation_policy: "Platform Critical"
+          
+      templates:
+        backup_success: "Backup completed successfully for {{ database }} at {{ timestamp }}"
+        backup_failure: "CRITICAL: Backup failed for {{ database }} - {{ error }}"
+        verification_failure: "CRITICAL: Backup verification failed for {{ backup_id }}"
+        storage_warning: "WARNING: Backup storage usage at {{ percentage }}% of quota"

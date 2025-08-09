@@ -1,0 +1,1240 @@
+openapi: 3.0.3
+info:
+  title: GameTriq Authentication Service
+  description: |
+    Basketball League Management Platform Authentication Service with COPPA compliance.
+    
+    This service provides secure authentication, authorization, and user management
+    for the GameTriq basketball league platform, with special considerations for
+    youth sports participants under 13 years old (COPPA compliance).
+    
+    ## Key Features
+    - JWT-based authentication with refresh tokens
+    - Multi-factor authentication (MFA) for eligible users
+    - COPPA-compliant registration and parental consent workflows
+    - Age-appropriate password policies
+    - Multi-tenant architecture support
+    - Session management with automatic expiration
+    - Comprehensive audit logging
+    
+    ## Security Considerations
+    - All passwords are hashed using bcrypt with salt rounds
+    - JWT tokens have short expiration times (15 minutes for access tokens)
+    - Rate limiting is applied to prevent brute force attacks
+    - COPPA compliance includes parental consent verification
+    - Enhanced data protection for users under 13
+  version: 1.0.0
+  contact:
+    name: GameTriq Development Team
+    email: dev@gametriq.com
+  license:
+    name: Proprietary
+    url: https://gametriq.com/license
+
+servers:
+  - url: https://auth.gametriq.com/api/v1
+    description: Production server
+  - url: https://auth-staging.gametriq.com/api/v1
+    description: Staging server
+  - url: http://localhost:3001/api/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: User Management
+    description: User profile and account management
+  - name: MFA
+    description: Multi-factor authentication
+  - name: COPPA Compliance
+    description: Parental consent and minor user management
+  - name: Admin
+    description: Administrative endpoints
+  - name: Health
+    description: Service health and monitoring
+
+paths:
+  /register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: |
+        Register a new user account. For users under 13, this initiates a
+        COPPA-compliant registration process requiring parental consent.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+            examples:
+              adult_player:
+                summary: Adult player registration
+                value:
+                  email: "player@example.com"
+                  password: "SecurePass123!"
+                  first_name: "John"
+                  last_name: "Doe"
+                  birth_date: "1990-05-15"
+                  gender: "MALE"
+                  role: "PLAYER"
+                  timezone: "America/Phoenix"
+              minor_player:
+                summary: Minor player registration
+                value:
+                  email: "minor@example.com"
+                  password: "KidsPass123!"
+                  first_name: "Emma"
+                  last_name: "Smith"
+                  birth_date: "2015-03-20"
+                  gender: "FEMALE"
+                  role: "PLAYER"
+                  timezone: "America/Phoenix"
+              coach:
+                summary: Coach registration
+                value:
+                  email: "coach@example.com"
+                  password: "CoachPass123!"
+                  first_name: "Sarah"
+                  last_name: "Johnson"
+                  birth_date: "1985-08-10"
+                  gender: "FEMALE"
+                  phone: "+1234567890"
+                  role: "COACH"
+                  timezone: "America/Phoenix"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RegistrationSuccessResponse'
+                  - $ref: '#/components/schemas/MinorRegistrationResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many registration attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: |
+        Authenticate a user and return access and refresh tokens.
+        For users with MFA enabled, an additional MFA token is required.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful or MFA required
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/LoginSuccessResponse'
+                  - $ref: '#/components/schemas/MFARequiredResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account locked or parental consent required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /refresh-token:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Generate a new access token using a valid refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/profile:
+    get:
+      tags:
+        - User Management
+      summary: Get current user profile
+      description: Retrieve the profile information for the authenticated user
+      operationId: getUserProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - User Management
+      summary: Update user profile
+      description: Update the current user's profile information
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileUpdateResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate the current session and tokens
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh token to invalidate
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /auth/change-password:
+    post:
+      tags:
+        - User Management
+      summary: Change user password
+      description: Change the current user's password
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Current password incorrect or authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/mfa/enable:
+    post:
+      tags:
+        - MFA
+      summary: Enable multi-factor authentication
+      description: |
+        Enable MFA for the current user. Not available for users under 13.
+        Returns QR code and backup codes for setup.
+      operationId: enableMFA
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableMFARequest'
+      responses:
+        '200':
+          description: MFA enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MFASetupResponse'
+        '401':
+          description: Authentication required or password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: MFA not available for users under 13
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/mfa/verify:
+    post:
+      tags:
+        - MFA
+      summary: Verify MFA token
+      description: Verify a TOTP token or backup code
+      operationId: verifyMFA
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyMFARequest'
+      responses:
+        '200':
+          description: MFA token verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MFAVerificationResponse'
+
+  /parental-consent:
+    post:
+      tags:
+        - COPPA Compliance
+      summary: Request parental consent
+      description: |
+        Initiate parental consent process for a user under 13.
+        Sends verification email or initiates other verification methods.
+      operationId: requestParentalConsent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentalConsentRequest'
+      responses:
+        '200':
+          description: Parental consent request initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentalConsentResponse'
+        '400':
+          description: Invalid request or child not eligible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Child user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /parental-consent/{consentId}/verify:
+    post:
+      tags:
+        - COPPA Compliance
+      summary: Verify parental consent
+      description: Verify parental consent using provided verification data
+      operationId: verifyParentalConsent
+      parameters:
+        - name: consentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Consent request ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentVerificationRequest'
+      responses:
+        '200':
+          description: Consent verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentVerificationResponse'
+        '400':
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check the health status of the authentication service
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from login endpoint
+
+  schemas:
+    UserRegistrationRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+        - birth_date
+        - gender
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          description: User's password (minimum 8 characters)
+          example: "SecurePass123!"
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: User's first name
+          example: "John"
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: User's last name
+          example: "Doe"
+        birth_date:
+          type: string
+          format: date
+          description: User's birth date (ISO 8601 format)
+          example: "1990-05-15"
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+          description: User's gender
+          example: "MALE"
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: User's phone number (optional)
+          example: "+1234567890"
+        role:
+          type: string
+          enum: [COACH, ASSISTANT_COACH, PARENT, PLAYER, REFEREE, SCOREKEEPER, VOLUNTEER]
+          description: User's role in the platform
+          example: "PLAYER"
+        timezone:
+          type: string
+          description: User's timezone
+          example: "America/Phoenix"
+          default: "America/Phoenix"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        password:
+          type: string
+          description: User's password
+          example: "SecurePass123!"
+        mfaToken:
+          type: string
+          description: MFA token (required if MFA is enabled)
+          example: "123456"
+        rememberMe:
+          type: boolean
+          description: Extended session duration
+          default: false
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Valid refresh token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          description: Current password
+          example: "OldPass123!"
+        newPassword:
+          type: string
+          minLength: 8
+          description: New password (minimum 8 characters)
+          example: "NewSecurePass123!"
+
+    EnableMFARequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          description: User's current password for verification
+          example: "SecurePass123!"
+
+    VerifyMFARequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: 6-digit TOTP token or backup code
+          example: "123456"
+
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Updated first name
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Updated last name
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Updated phone number
+        timezone:
+          type: string
+          description: Updated timezone
+        preferences:
+          type: object
+          additionalProperties: true
+          description: User preferences
+
+    ParentalConsentRequest:
+      type: object
+      required:
+        - childId
+        - parentEmail
+        - parentFirstName
+        - parentLastName
+        - consentType
+        - dataPermissions
+      properties:
+        childId:
+          type: string
+          format: uuid
+          description: ID of the child user
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        parentEmail:
+          type: string
+          format: email
+          description: Parent's email address
+          example: "parent@example.com"
+        parentFirstName:
+          type: string
+          description: Parent's first name
+          example: "Jane"
+        parentLastName:
+          type: string
+          description: Parent's last name
+          example: "Parent"
+        parentPhone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Parent's phone number (optional)
+          example: "+1234567890"
+        consentType:
+          type: object
+          required:
+            - registration
+            - teamParticipation
+            - photoVideo
+            - communication
+            - marketing
+          properties:
+            registration:
+              type: boolean
+              description: Consent for platform registration
+              default: true
+            teamParticipation:
+              type: boolean
+              description: Consent for team participation
+              default: true
+            photoVideo:
+              type: boolean
+              description: Consent for photos and videos
+              default: false
+            communication:
+              type: boolean
+              description: Consent for necessary communications
+              default: true
+            marketing:
+              type: boolean
+              description: Consent for marketing communications
+              default: false
+        dataPermissions:
+          type: object
+          required:
+            - basicInfo
+            - communication
+            - photos
+            - performanceTracking
+            - marketing
+            - locationTracking
+            - thirdPartySharing
+          properties:
+            basicInfo:
+              type: boolean
+              description: Permission to collect basic information
+              default: true
+            communication:
+              type: boolean
+              description: Permission for communications
+              default: true
+            photos:
+              type: boolean
+              description: Permission for photos and media
+              default: false
+            performanceTracking:
+              type: boolean
+              description: Permission for performance statistics
+              default: true
+            marketing:
+              type: boolean
+              description: Permission for marketing materials
+              default: false
+            locationTracking:
+              type: boolean
+              description: Permission for location tracking
+              default: false
+            thirdPartySharing:
+              type: boolean
+              description: Permission for third-party data sharing
+              default: false
+        verificationMethod:
+          type: string
+          enum: [EMAIL, DIGITAL_SIGNATURE, CREDIT_CARD, GOVERNMENT_ID, VIDEO_CALL]
+          description: Method for parental verification
+          default: EMAIL
+
+    ConsentVerificationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Email verification token
+        signature:
+          type: string
+          description: Digital signature data
+        signatureValid:
+          type: boolean
+          description: Digital signature validation result
+        authorizationCode:
+          type: string
+          description: Credit card authorization code
+        verified:
+          type: boolean
+          description: Credit card verification result
+        idVerified:
+          type: boolean
+          description: Government ID verification result
+        confidence:
+          type: number
+          description: ID verification confidence score
+        staffVerified:
+          type: boolean
+          description: Staff verification result for video calls
+        staffId:
+          type: string
+          description: ID of staff member who verified
+
+    # Response Schemas
+    RegistrationSuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - user
+        - tokens
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User registered successfully"
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+
+    MinorRegistrationResponse:
+      type: object
+      required:
+        - success
+        - message
+        - user
+        - ageVerification
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User registered successfully. Parental consent required."
+        user:
+          allOf:
+            - $ref: '#/components/schemas/UserProfile'
+            - type: object
+              properties:
+                requires_parental_consent:
+                  type: boolean
+                  example: true
+        ageVerification:
+          $ref: '#/components/schemas/AgeVerificationResult'
+
+    LoginSuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - user
+        - tokens
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+
+    MFARequiredResponse:
+      type: object
+      required:
+        - success
+        - message
+        - requires_mfa
+        - user_id
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "MFA token required"
+        requires_mfa:
+          type: boolean
+          example: true
+        user_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    TokenResponse:
+      type: object
+      required:
+        - success
+        - message
+        - tokens
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Token refreshed successfully"
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+
+    UserProfileResponse:
+      type: object
+      required:
+        - success
+        - user
+      properties:
+        success:
+          type: boolean
+          example: true
+        user:
+          allOf:
+            - $ref: '#/components/schemas/UserProfile'
+            - type: object
+              properties:
+                coppa_info:
+                  $ref: '#/components/schemas/COPPAInfo'
+
+    UserProfileUpdateResponse:
+      type: object
+      required:
+        - success
+        - message
+        - user
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Profile updated successfully"
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    MFASetupResponse:
+      type: object
+      required:
+        - success
+        - message
+        - mfa
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "MFA enabled successfully"
+        mfa:
+          type: object
+          required:
+            - secret
+            - qrCodeUrl
+            - backupCodes
+          properties:
+            secret:
+              type: string
+              description: Base32 encoded secret for TOTP
+              example: "JBSWY3DPEHPK3PXP"
+            qrCodeUrl:
+              type: string
+              format: uri
+              description: QR code image as data URL
+              example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ..."
+            backupCodes:
+              type: array
+              items:
+                type: string
+              description: 8 backup codes for account recovery
+              example: ["12345678", "87654321", "11223344", "44332211", "55667788", "88776655", "99001122", "22110099"]
+
+    MFAVerificationResponse:
+      type: object
+      required:
+        - success
+        - valid
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        valid:
+          type: boolean
+          description: Whether the MFA token is valid
+          example: true
+        message:
+          type: string
+          example: "MFA token is valid"
+
+    ParentalConsentResponse:
+      type: object
+      required:
+        - success
+        - message
+        - consent_id
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Parental consent request initiated"
+        consent_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        verification_url:
+          type: string
+          format: uri
+          description: URL for parent to complete verification
+          example: "https://gametriq.com/coppa/verify?consent=123e4567-e89b-12d3-a456-426614174000&token=abc123"
+
+    ConsentVerificationResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Parental consent verified successfully"
+        consent:
+          type: object
+          properties:
+            consent_id:
+              type: string
+              format: uuid
+            verification_method:
+              type: string
+            consent_date:
+              type: string
+              format: date-time
+            expiry_date:
+              type: string
+              format: date-time
+            permissions:
+              type: object
+              additionalProperties: true
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - services
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-12-07T10:30:00Z"
+        services:
+          type: object
+          required:
+            - database
+            - redis
+          properties:
+            database:
+              type: string
+              enum: [healthy, unhealthy]
+              example: "healthy"
+            redis:
+              type: string
+              enum: [healthy, unhealthy]
+              example: "healthy"
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "Validation Error"
+        message:
+          type: string
+          description: Error message
+          example: "The provided email address is invalid"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-12-07T10:30:00Z"
+
+    # Common Data Types
+    UserProfile:
+      type: object
+      required:
+        - id
+        - email
+        - first_name
+        - last_name
+        - birth_date
+        - age
+        - gender
+        - status
+        - role
+        - email_verified
+        - phone_verified
+        - mfa_enabled
+        - timezone
+        - preferences
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        first_name:
+          type: string
+          example: "John"
+        last_name:
+          type: string
+          example: "Doe"
+        birth_date:
+          type: string
+          format: date
+          example: "1990-05-15"
+        age:
+          type: integer
+          example: 33
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+          example: "MALE"
+        phone:
+          type: string
+          example: "+1234567890"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED, PENDING_VERIFICATION, ARCHIVED]
+          example: "ACTIVE"
+        role:
+          type: string
+          enum: [SYSTEM_ADMIN, ORG_ADMIN, LEAGUE_ADMIN, COACH, ASSISTANT_COACH, PARENT, PLAYER, REFEREE, SCOREKEEPER, VOLUNTEER]
+          example: "PLAYER"
+        email_verified:
+          type: boolean
+          example: true
+        phone_verified:
+          type: boolean
+          example: false
+        mfa_enabled:
+          type: boolean
+          example: false
+        last_login:
+          type: string
+          format: date-time
+          example: "2023-12-07T09:15:00Z"
+        timezone:
+          type: string
+          example: "America/Phoenix"
+        preferences:
+          type: object
+          additionalProperties: true
+          example: {}
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-11-01T14:30:00Z"
+
+    TokenPair:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - expiresIn
+        - tokenType
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          description: Refresh token for generating new access tokens
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiresIn:
+          type: integer
+          description: Access token expiration time in seconds
+          example: 900
+        tokenType:
+          type: string
+          description: Token type
+          example: "Bearer"
+
+    COPPAInfo:
+      type: object
+      description: COPPA compliance information for users under 13
+      properties:
+        hasValidConsent:
+          type: boolean
+          description: Whether valid parental consent exists
+          example: true
+        permissions:
+          type: object
+          additionalProperties: true
+          description: Data permissions granted by parent
+        consentDate:
+          type: string
+          format: date-time
+          description: When consent was granted
+          example: "2023-11-01T14:30:00Z"
+        expiryDate:
+          type: string
+          format: date-time
+          description: When consent expires
+          example: "2024-11-01T14:30:00Z"
+
+    AgeVerificationResult:
+      type: object
+      required:
+        - isMinor
+        - age
+        - requiresCOPPA
+        - parentalConsentRequired
+        - verificationMethod
+        - restrictions
+      properties:
+        isMinor:
+          type: boolean
+          description: Whether user is under 13
+          example: false
+        age:
+          type: integer
+          description: Calculated age
+          example: 28
+        requiresCOPPA:
+          type: boolean
+          description: Whether COPPA compliance is required
+          example: false
+        parentalConsentRequired:
+          type: boolean
+          description: Whether parental consent is needed
+          example: false
+        verificationMethod:
+          type: string
+          description: Method used for age verification
+          example: "BIRTH_DATE_CALCULATION"
+        restrictions:
+          type: array
+          items:
+            type: string
+          description: List of restrictions or requirements
+          example: []
+
+security:
+  - BearerAuth: []

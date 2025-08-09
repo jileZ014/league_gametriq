@@ -1,0 +1,357 @@
+# Prometheus Configuration for Basketball League Management Platform
+# Optimized for microservices architecture with basketball-specific metrics
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'basketball-league-platform'
+    environment: '{{ .Values.environment }}'
+
+rule_files:
+  - "alert_rules.yml"
+  - "basketball_rules.yml"
+
+# AlertManager Configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Scrape Configurations
+scrape_configs:
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - Infrastructure Metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+
+  # Kubernetes API Server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  # Core Business Services
+  - job_name: 'auth-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: auth-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+
+  - job_name: 'user-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: user-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  - job_name: 'league-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: league-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  - job_name: 'game-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: game-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 5s  # Higher frequency for real-time game metrics
+
+  - job_name: 'team-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: team-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  - job_name: 'schedule-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: schedule-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  - job_name: 'tournament-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: tournament-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  # Payment and Financial Services
+  - job_name: 'payment-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: payment-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 5s  # Higher frequency for financial monitoring
+
+  # Notification Services
+  - job_name: 'notification-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: notification-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  # Analytics and Statistics Services
+  - job_name: 'analytics-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: analytics-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  - job_name: 'stats-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: stats-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  # External Integration Services
+  - job_name: 'weather-service'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: weather-service
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 30s  # Weather data less frequent
+
+  # Infrastructure Components
+  - job_name: 'kong-api-gateway'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: kong
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+    scrape_interval: 10s
+
+  # Database Monitoring
+  - job_name: 'postgres-exporter'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: postgres-exporter
+    scrape_interval: 15s
+
+  - job_name: 'redis-exporter'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: redis-exporter
+    scrape_interval: 15s
+
+  # Message Queue Monitoring
+  - job_name: 'kafka-exporter'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: kafka-exporter
+    scrape_interval: 15s
+
+  # Web Frontend Monitoring (via service worker)
+  - job_name: 'web-vitals'
+    static_configs:
+      - targets: ['web-vitals-collector:8080']
+    scrape_interval: 30s
+    metrics_path: '/vitals/metrics'
+
+  # Custom Basketball Metrics Collector
+  - job_name: 'basketball-metrics'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: basketball-metrics-collector
+    scrape_interval: 5s  # High frequency for game events
+
+# Recording Rules for Basketball-Specific Aggregations
+recording_rules:
+  # Golden Signals
+  - name: golden_signals
+    rules:
+    - record: platform:request_rate
+      expr: sum(rate(http_requests_total[5m])) by (service, method, status)
+    
+    - record: platform:error_rate
+      expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) by (service)
+    
+    - record: platform:latency_p99
+      expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le))
+    
+    - record: platform:latency_p95
+      expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le))
+    
+    - record: platform:latency_p50
+      expr: histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (service, le))
+
+  # Basketball Business Metrics
+  - name: basketball_kpis
+    rules:
+    - record: basketball:games_completed_rate
+      expr: sum(rate(basketball_games_completed_total[1h])) by (league, tournament)
+    
+    - record: basketball:live_scoring_latency
+      expr: histogram_quantile(0.99, sum(rate(basketball_scoring_latency_bucket[1m])) by (game_id, le))
+    
+    - record: basketball:user_registration_funnel
+      expr: sum(basketball_user_registrations_total) by (step, league) / sum(basketball_user_registrations_total{step="started"}) by (league)
+    
+    - record: basketball:payment_success_rate
+      expr: sum(basketball_payments_total{status="success"}) / sum(basketball_payments_total) by (league, payment_type)
+    
+    - record: basketball:tournament_participation
+      expr: sum(basketball_tournament_participants_total) by (tournament_id, age_group)
+
+  # COPPA and Safety Metrics
+  - name: youth_safety
+    rules:
+    - record: coppa:data_access_rate
+      expr: sum(rate(coppa_data_access_total[1h])) by (user_type, data_type)
+    
+    - record: safety:incident_rate
+      expr: sum(rate(safety_incidents_total[24h])) by (incident_type, league)
+    
+    - record: weather:heat_alerts
+      expr: sum(weather_heat_alerts_total) by (location, severity)
+
+# Storage and Retention
+storage:
+  tsdb:
+    retention.time: 30d
+    retention.size: 100GB
+    wal-compression: true
+
+# Remote Write for Long-term Storage (to DataDog or other TSDB)
+remote_write:
+  - url: "{{ .Values.remote_write_url }}"
+    basic_auth:
+      username: "{{ .Values.remote_write_username }}"
+      password: "{{ .Values.remote_write_password }}"
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'basketball_.*|platform_.*|coppa_.*|safety_.*'
+        action: keep
+
+# Tracing Integration
+tracing:
+  endpoint: "http://jaeger-collector:14268/api/traces"
+  insecure: true
+  timeout: 5s
