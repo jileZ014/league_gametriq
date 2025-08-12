@@ -31,6 +31,7 @@
     "pw:clean": "rm -rf .pw-user artifacts/playwright/screenshots/* artifacts/playwright/traces/* artifacts/playwright/videos/*",
     "pw:report": "playwright show-report artifacts/playwright/html",
     "pw:trace": "playwright show-trace",
+    "live:headed": "cross-env UI_MODERN_V1=1 NEXT_PUBLIC_UI_MODERN_V1=1 node tools/runHeadedReview.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
