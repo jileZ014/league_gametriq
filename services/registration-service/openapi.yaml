@@ -1,0 +1,583 @@
+openapi: 3.0.0
+info:
+  title: Registration Service API
+  description: API for managing player and team registrations
+  version: 1.0.0
+  contact:
+    name: Gametriq Support
+    email: support@gametriq.com
+
+servers:
+  - url: http://localhost:3004/api/v1
+    description: Development server
+  - url: https://api.gametriq.com/registration/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /registration/orders:
+    post:
+      summary: Create registration order
+      description: Create a new registration order for team or individual players
+      tags:
+        - Registration
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        201:
+          description: Registration order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        500:
+          $ref: '#/components/responses/InternalError'
+
+  /registration/orders/{orderId}:
+    get:
+      summary: Get registration order
+      description: Get registration order details by ID
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        200:
+          description: Registration order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update registration order
+      description: Update registration order details
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderRequest'
+      responses:
+        200:
+          description: Registration order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /registration/orders/{orderId}/discount:
+    post:
+      summary: Apply discount code
+      description: Apply a discount code to the registration order
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - discount_code
+              properties:
+                discount_code:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+      responses:
+        200:
+          description: Discount applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /registration/orders/{orderId}/waivers:
+    post:
+      summary: Sign waiver
+      description: Sign a waiver for the registration
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignWaiverRequest'
+      responses:
+        200:
+          description: Waiver signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaiverResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    get:
+      summary: Get order waivers
+      description: Get all waivers for a registration order
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        200:
+          description: List of waivers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Waiver'
+
+  /registration/orders/{orderId}/cancel:
+    post:
+      summary: Cancel registration order
+      description: Cancel a registration order
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        200:
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /registration/orders/{orderId}/coppa-compliance:
+    get:
+      summary: Check COPPA compliance
+      description: Check COPPA compliance status for all players in the order
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        200:
+          description: COPPA compliance status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/COPPAComplianceResponse'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /registration/orders/{orderId}/audit:
+    get:
+      summary: Get audit trail
+      description: Get audit trail for a registration order
+      tags:
+        - Registration
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        200:
+          description: Audit trail entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+
+  /registration/users/{userId}/registrations:
+    get:
+      summary: Get user registrations
+      description: Get registration history for a user
+      tags:
+        - Registration
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: List of user registrations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RegistrationOrder'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      description: Registration order ID
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CreateOrderRequest:
+      type: object
+      required:
+        - tenant_id
+        - season_id
+        - division_id
+        - registration_type
+        - primary_contact
+        - emergency_contacts
+        - payment_method
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+        season_id:
+          type: string
+          format: uuid
+        division_id:
+          type: string
+          format: uuid
+        registration_type:
+          type: string
+          enum: [TEAM, INDIVIDUAL]
+        team_id:
+          type: string
+          format: uuid
+        player_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        primary_contact:
+          $ref: '#/components/schemas/PrimaryContact'
+        emergency_contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyContact'
+        medical_info:
+          $ref: '#/components/schemas/MedicalInfo'
+        payment_method:
+          type: string
+          enum: [CREDIT_CARD, DEBIT_CARD, CHECK, CASH, PAYMENT_PLAN]
+        metadata:
+          type: object
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, PENDING_PAYMENT, PENDING_WAIVERS, COMPLETED, CANCELLED]
+        primary_contact:
+          $ref: '#/components/schemas/PrimaryContact'
+        emergency_contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyContact'
+        medical_info:
+          $ref: '#/components/schemas/MedicalInfo'
+        metadata:
+          type: object
+
+    SignWaiverRequest:
+      type: object
+      required:
+        - waiver_type
+        - player_id
+        - signed_by_user_id
+        - signature_data
+      properties:
+        waiver_type:
+          type: string
+          enum: [LIABILITY, MEDICAL, PHOTO_RELEASE, SAFESPORT]
+        player_id:
+          type: string
+          format: uuid
+        signed_by_user_id:
+          type: string
+          format: uuid
+        parent_consent_id:
+          type: string
+          format: uuid
+        signature_data:
+          type: string
+
+    PrimaryContact:
+      type: object
+      required:
+        - user_id
+        - email
+        - phone
+        - first_name
+        - last_name
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+
+    EmergencyContact:
+      type: object
+      required:
+        - name
+        - relationship
+        - phone
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+
+    MedicalInfo:
+      type: object
+      properties:
+        allergies:
+          type: array
+          items:
+            type: string
+        medications:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        doctor_name:
+          type: string
+        doctor_phone:
+          type: string
+        insurance_provider:
+          type: string
+        insurance_policy_number:
+          type: string
+
+    RegistrationOrder:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrderRequest'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            order_number:
+              type: string
+            status:
+              type: string
+            subtotal:
+              type: number
+            discount_amount:
+              type: number
+            tax_amount:
+              type: number
+            total_amount:
+              type: number
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    Waiver:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        waiver_type:
+          type: string
+        player_id:
+          type: string
+          format: uuid
+        signed_by_name:
+          type: string
+        signed_at:
+          type: string
+          format: date-time
+        is_valid:
+          type: boolean
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        performed_by_name:
+          type: string
+        action_timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+
+    COPPAComplianceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            order_id:
+              type: string
+              format: uuid
+            all_players_compliant:
+              type: boolean
+            total_players:
+              type: integer
+            compliant_players:
+              type: integer
+            pending_consents:
+              type: integer
+            players_requiring_consent:
+              type: array
+              items:
+                type: object
+                properties:
+                  player_id:
+                    type: string
+                    format: uuid
+                  player_name:
+                    type: string
+                  age:
+                    type: integer
+                  consent_status:
+                    type: string
+
+    OrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/RegistrationOrder'
+
+    WaiverResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Waiver'
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string

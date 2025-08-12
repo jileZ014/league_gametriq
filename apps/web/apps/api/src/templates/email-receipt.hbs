@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Receipt - {{organization_name}}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        
+        /* Remove default styling */
+        body { margin: 0; padding: 0; width: 100% !important; min-width: 100%; }
+        
+        /* Mobile styles */
+        @media screen and (max-width: 600px) {
+            .mobile-hide { display: none !important; }
+            .mobile-center { text-align: center !important; }
+            .container { width: 100% !important; max-width: 100% !important; }
+            .content { padding: 20px !important; }
+            .invoice-table { font-size: 14px !important; }
+            .button { display: block !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: {{brand_primary_color}}; padding: 40px 30px; text-align: center;">
+                            {{#if organization_logo}}
+                                <img src="{{organization_logo}}" alt="{{organization_name}}" style="max-width: 200px; height: auto; margin-bottom: 20px;">
+                            {{/if}}
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Registration Confirmation</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Success Message -->
+                    <tr>
+                        <td style="padding: 40px 30px 20px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div style="display: inline-block; background-color: #4CAF50; color: white; width: 60px; height: 60px; border-radius: 50%; line-height: 60px; font-size: 30px; margin-bottom: 20px;">✓</div>
+                                        <h2 style="color: #333; margin: 0 0 10px 0; font-size: 24px;">Thank You for Your Registration!</h2>
+                                        <p style="color: #666; font-size: 16px; line-height: 1.5; margin: 0;">Your registration has been successfully processed.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Order Details -->
+                    <tr>
+                        <td class="content" style="padding: 20px 30px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Registration Details</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Order Number:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right; font-weight: 600;">{{order_number}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Registration Date:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">{{registration_date}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Season:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">{{season_name}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Division:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">{{division_name}}</td>
+                                            </tr>
+                                            {{#if team_name}}
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Team:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">{{team_name}}</td>
+                                            </tr>
+                                            {{/if}}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Players List -->
+                    {{#if players}}
+                    <tr>
+                        <td class="content" style="padding: 0 30px 20px;">
+                            <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Registered Players</h3>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border: 1px solid #e0e0e0; border-radius: 8px;">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 12px; text-align: left; color: #666; font-weight: 600; border-bottom: 1px solid #e0e0e0;">Player Name</th>
+                                    <th style="padding: 12px; text-align: center; color: #666; font-weight: 600; border-bottom: 1px solid #e0e0e0;" class="mobile-hide">Age</th>
+                                    <th style="padding: 12px; text-align: center; color: #666; font-weight: 600; border-bottom: 1px solid #e0e0e0;">Jersey Size</th>
+                                </tr>
+                                {{#each players}}
+                                <tr>
+                                    <td style="padding: 12px; color: #333; border-bottom: 1px solid #f0f0f0;">{{this.name}}</td>
+                                    <td style="padding: 12px; color: #666; text-align: center; border-bottom: 1px solid #f0f0f0;" class="mobile-hide">{{this.age}}</td>
+                                    <td style="padding: 12px; color: #666; text-align: center; border-bottom: 1px solid #f0f0f0;">{{this.jersey_size}}</td>
+                                </tr>
+                                {{/each}}
+                            </table>
+                        </td>
+                    </tr>
+                    {{/if}}
+                    
+                    <!-- Payment Summary -->
+                    <tr>
+                        <td class="content" style="padding: 0 30px 30px;">
+                            <table class="invoice-table" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Payment Summary</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666;">Subtotal:</td>
+                                                <td style="padding: 8px 0; color: #333; text-align: right;">${{subtotal}}</td>
+                                            </tr>
+                                            {{#if discount_amount}}
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666;">Discount ({{discount_code}}):</td>
+                                                <td style="padding: 8px 0; color: #4CAF50; text-align: right;">-${{discount_amount}}</td>
+                                            </tr>
+                                            {{/if}}
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #666;">Tax:</td>
+                                                <td style="padding: 8px 0; color: #333; text-align: right;">${{tax_amount}}</td>
+                                            </tr>
+                                            <tr style="border-top: 2px solid #e0e0e0;">
+                                                <td style="padding: 12px 0 0 0; color: #333; font-weight: 600; font-size: 18px;">Total Paid:</td>
+                                                <td style="padding: 12px 0 0 0; color: #333; text-align: right; font-weight: 600; font-size: 18px;">${{total_amount}}</td>
+                                            </tr>
+                                        </table>
+                                        <p style="color: #666; font-size: 14px; margin: 15px 0 0 0;">
+                                            Payment Method: {{payment_method}}<br>
+                                            Transaction ID: {{transaction_id}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Next Steps -->
+                    <tr>
+                        <td class="content" style="padding: 0 30px 30px;">
+                            <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">What's Next?</h3>
+                            <ol style="color: #666; font-size: 16px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                                <li style="margin-bottom: 10px;">You will receive team assignment information via email once teams are finalized.</li>
+                                <li style="margin-bottom: 10px;">Practice schedules will be sent approximately 2 weeks before the season starts.</li>
+                                <li style="margin-bottom: 10px;">Uniform pickup information will be provided by your team coach.</li>
+                                {{#if requires_physical}}
+                                <li style="margin-bottom: 10px;"><strong style="color: #FF6B6B;">Important:</strong> Please ensure physical examination forms are submitted before the first practice.</li>
+                                {{/if}}
+                            </ol>
+                        </td>
+                    </tr>
+                    
+                    <!-- Important Information -->
+                    {{#if has_coppa_players}}
+                    <tr>
+                        <td class="content" style="padding: 0 30px 30px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #E3F2FD; border-radius: 8px; padding: 20px; border: 1px solid #90CAF9;">
+                                <tr>
+                                    <td>
+                                        <h4 style="color: #1565C0; margin: 0 0 10px 0; font-size: 16px;">COPPA Compliance Notice</h4>
+                                        <p style="color: #1976D2; font-size: 14px; line-height: 1.5; margin: 0;">
+                                            One or more registered players are under 13 years of age. We take privacy seriously and comply with COPPA regulations. 
+                                            No personal information will be shared without parental consent.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {{/if}}
+                    
+                    <!-- Action Buttons -->
+                    <tr>
+                        <td class="content" style="padding: 0 30px 40px;" align="center">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="padding-right: 10px;">
+                                        <a href="{{portal_url}}" class="button" style="display: inline-block; background-color: {{brand_primary_color}}; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 12px 30px; border-radius: 6px;">View in Portal</a>
+                                    </td>
+                                    <td>
+                                        <a href="{{portal_url}}/print-receipt/{{order_id}}" class="button" style="display: inline-block; background-color: #6c757d; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 12px 30px; border-radius: 6px;">Print Receipt</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; border-top: 1px solid #e0e0e0;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0 0 10px 0;">
+                                            Questions? Contact us at:<br>
+                                            <a href="mailto:{{support_email}}" style="color: {{brand_primary_color}}; text-decoration: none;">{{support_email}}</a> | 
+                                            <a href="tel:{{support_phone_raw}}" style="color: {{brand_primary_color}}; text-decoration: none;">{{support_phone}}</a>
+                                        </p>
+                                        <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+                                            {{organization_name}}<br>
+                                            {{organization_address}}<br>
+                                            <br>
+                                            This is an automated email. Please do not reply directly to this message.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,238 @@
+# ScoreCard Component Specification
+
+## Overview
+Dynamic live score display component inspired by NBA 2K's bold presentation with ESPN's data clarity.
+
+## Anatomy
+
+```
+┌─────────────────────────────────────────┐
+│  [Status Badge]    [Time/Period]   [●]  │  <- Header
+├─────────────────────────────────────────┤
+│                                         │
+│  [Team Logo]  TEAM NAME        SCORE   │  <- Home Team
+│               subtitle          ###     │
+│                                         │
+│  ═══════════════════════════════════    │  <- Divider
+│                                         │
+│  [Team Logo]  TEAM NAME        SCORE   │  <- Away Team
+│               subtitle          ###     │
+│                                         │
+├─────────────────────────────────────────┤
+│  [Momentum Bar]                         │  <- Footer
+└─────────────────────────────────────────┘
+```
+
+## Props Interface
+
+```typescript
+interface ScoreCardProps {
+  // Required
+  homeTeam: TeamInfo;
+  awayTeam: TeamInfo;
+  gameStatus: 'scheduled' | 'live' | 'final' | 'postponed';
+  
+  // Optional
+  period?: string;              // "Q1", "Q2", "HT", "Q3", "Q4", "OT"
+  timeRemaining?: string;        // "5:47"
+  momentum?: number;             // -100 to 100 (negative = away, positive = home)
+  variant?: 'default' | 'compact' | 'expanded';
+  showDetails?: boolean;
+  onTeamClick?: (team: 'home' | 'away') => void;
+  className?: string;
+}
+
+interface TeamInfo {
+  id: string;
+  name: string;
+  shortName?: string;
+  logo?: string;
+  score: number;
+  color?: string;
+  record?: string;  // "10-2"
+  fouls?: number;
+  timeouts?: number;
+}
+```
+
+## Visual States
+
+### Status Variants
+- **Scheduled**: Muted colors, time display prominent
+- **Live**: Pulsing indicator, bright colors, animations
+- **Final**: Static display, winner highlighted
+- **Postponed**: Grayed out, status message
+
+### Density Modes
+- **Compact** (Mobile): 120px height, minimal info
+- **Default** (Tablet): 180px height, standard info  
+- **Expanded** (Desktop): 240px height, full details
+
+### Theme Adaptation
+- Team colors applied dynamically
+- Glow effects on hover/focus
+- High contrast mode support
+
+## Behavior
+
+### Animations
+- **Score Update**: CountUp animation (600ms)
+- **Status Change**: Pulse + fadeIn (300ms)
+- **Hover**: Scale(1.02) + glow
+- **Click**: Scale(0.98) + ripple
+
+### Interactions
+- Click team name → Team details
+- Hover score → Breakdown tooltip
+- Long-press (mobile) → Context menu
+- Swipe left/right → Navigate games
+
+### Real-time Updates
+- WebSocket connection for live data
+- Optimistic UI updates
+- Offline queue for sync
+- Visual feedback on update
+
+## Responsive Behavior
+
+### Mobile (320-767px)
+```
+- Single column layout
+- Horizontal team arrangement
+- Swipe gestures enabled
+- Bottom sheet on tap
+```
+
+### Tablet (768-1023px)
+```
+- Two column capable
+- Touch-optimized targets
+- Hover states on stylus
+- Landscape optimization
+```
+
+### Desktop (1024px+)
+```
+- Full hover interactions
+- Keyboard navigation
+- Tooltip on hover
+- Multi-select support
+```
+
+## Accessibility
+
+### ARIA Attributes
+```html
+<article 
+  role="region"
+  aria-label="Game score"
+  aria-live="polite"
+  aria-atomic="true"
+>
+```
+
+### Keyboard Support
+- `Tab` - Navigate between cards
+- `Enter/Space` - Expand details
+- `Arrow keys` - Navigate within card
+- `Escape` - Close expanded view
+
+### Screen Reader
+- Announces score changes
+- Reads full team names
+- Provides game context
+- Updates on status change
+
+## Performance
+
+### Optimization Strategies
+- CSS transforms for animations
+- Will-change on interactive elements
+- Virtual DOM updates only
+- Debounced re-renders
+- Memoized team colors
+
+### Bundle Impact
+- Component: ~8KB minified
+- Styles: ~3KB minified
+- Runtime: <50ms render
+
+### Metrics Targets
+- FCP: <100ms
+- TTI: <200ms
+- FPS: 60 during animations
+- Memory: <5MB per instance
+
+## Implementation Example
+
+```tsx
+import { ScoreCard } from '@/components/ui/score-card';
+
+export default function GameList() {
+  return (
+    <ScoreCard
+      homeTeam={{
+        id: 'phx-suns',
+        name: 'Phoenix Suns',
+        score: 96,
+        color: '#FF9800',
+        record: '10-2',
+        fouls: 5,
+        timeouts: 2
+      }}
+      awayTeam={{
+        id: 'bos-celtics',
+        name: 'Boston Celtics',
+        score: 102,
+        color: '#008248',
+        record: '11-1',
+        fouls: 3,
+        timeouts: 3
+      }}
+      gameStatus="live"
+      period="Q3"
+      timeRemaining="5:47"
+      momentum={-15}
+      variant="default"
+      showDetails={true}
+      onTeamClick={(team) => console.log(`Clicked ${team}`)}
+    />
+  );
+}
+```
+
+## Design Tokens Used
+
+```css
+/* Colors */
+--team-home-primary
+--team-away-primary
+--live-glow
+--background-elevated
+
+/* Typography */
+--text-4xl (scores)
+--text-xl (team names)
+--text-sm (metadata)
+
+/* Spacing */
+--space-4 (padding)
+--space-2 (gaps)
+
+/* Animation */
+--duration-normal
+--ease-overshoot
+```
+
+## Testing Checklist
+
+- [ ] Renders all status variants correctly
+- [ ] Animations perform at 60fps
+- [ ] Touch gestures work on mobile
+- [ ] Keyboard navigation functional
+- [ ] Screen reader announces updates
+- [ ] Theme colors apply correctly
+- [ ] Offline mode handles gracefully
+- [ ] Memory usage stays under limit
+- [ ] No accessibility violations
+- [ ] Responsive at all breakpoints

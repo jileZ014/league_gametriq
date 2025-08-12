@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{waiver_type}} Waiver - {{organization_name}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .waiver-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 10px 0;
+            font-size: 28px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .waiver-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .waiver-info p {
+            margin: 5px 0;
+        }
+        .content {
+            text-align: justify;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-number {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .important {
+            background-color: #fff3cd;
+            border: 1px solid #ffecc8;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .important strong {
+            color: #856404;
+        }
+        .signature-section {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 6px;
+            margin-top: 40px;
+            border: 2px dashed #dee2e6;
+        }
+        .signature-line {
+            border-bottom: 2px solid #333;
+            width: 300px;
+            margin: 30px 0 5px 0;
+            display: inline-block;
+        }
+        .signature-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+        .coppa-notice {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .coppa-notice strong {
+            color: #1565c0;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .waiver-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="waiver-container">
+        <div class="header">
+            {{#if organization_logo}}
+                <img src="{{organization_logo}}" alt="{{organization_name}}" class="logo">
+            {{/if}}
+            <h1>{{waiver_type}} WAIVER AND RELEASE</h1>
+            <p style="font-size: 18px; color: #666;">{{organization_name}}</p>
+        </div>
+
+        <div class="waiver-info">
+            <p><strong>Player Name:</strong> [PLAYER_NAME]</p>
+            <p><strong>Date:</strong> [DATE]</p>
+            <p><strong>Season:</strong> {{season_name}}</p>
+            <p><strong>Division:</strong> {{division_name}}</p>
+        </div>
+
+        {{#if is_minor}}
+        <div class="coppa-notice">
+            <strong>NOTICE:</strong> This participant is under 13 years of age. Parental consent is required in accordance with the Children's Online Privacy Protection Act (COPPA) and SafeSport guidelines.
+        </div>
+        {{/if}}
+
+        <div class="content">
+            {{#eq waiver_type "LIABILITY"}}
+            <h2>ASSUMPTION OF RISK, WAIVER, AND RELEASE OF LIABILITY</h2>
+            
+            <div class="section">
+                <p><span class="section-number">1. ACKNOWLEDGMENT OF RISKS:</span> I understand that participation in basketball activities involves inherent risks, including but not limited to: physical injury, falls, contact with other participants, the effects of weather, traffic, and the conditions of the playing surface. I acknowledge that these risks can result in serious injury or death.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">2. ASSUMPTION OF RISK:</span> I voluntarily assume all risks associated with participation in [ORGANIZATION] basketball activities, whether known or unknown, including travel to and from activities.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">3. RELEASE AND WAIVER:</span> I hereby release, waive, discharge, and covenant not to sue [ORGANIZATION], its officers, directors, employees, agents, volunteers, sponsors, and affiliates from any and all liability, claims, demands, actions, and causes of action arising out of or related to any loss, damage, or injury that may be sustained during participation in basketball activities.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">4. INDEMNIFICATION:</span> I agree to indemnify and hold harmless [ORGANIZATION] from any loss, liability, damage, or costs that may incur due to participation in basketball activities, whether caused by negligence or otherwise.</p>
+            </div>
+            {{/eq}}
+
+            {{#eq waiver_type "MEDICAL"}}
+            <h2>MEDICAL INFORMATION AND EMERGENCY TREATMENT AUTHORIZATION</h2>
+            
+            <div class="section">
+                <p><span class="section-number">1. MEDICAL FITNESS:</span> I certify that the participant is physically fit and has no medical condition that would prevent safe participation in basketball activities. Any medical conditions, allergies, or medications have been disclosed to [ORGANIZATION].</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">2. EMERGENCY TREATMENT:</span> In the event of injury or illness, I authorize [ORGANIZATION] staff and medical personnel to administer first aid and seek emergency medical treatment as deemed necessary. I understand that [ORGANIZATION] will attempt to contact the emergency contacts provided but authorize treatment in their absence if required.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">3. MEDICAL INSURANCE:</span> I understand that [ORGANIZATION] does not provide medical insurance coverage and that I am responsible for any medical expenses incurred.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">4. MEDICATION ADMINISTRATION:</span> If the participant requires medication during activities, I will provide clear written instructions and authorize designated staff to assist with administration as needed.</p>
+            </div>
+            {{/eq}}
+
+            {{#eq waiver_type "PHOTO_RELEASE"}}
+            <h2>PHOTOGRAPHY AND VIDEO RELEASE</h2>
+            
+            <div class="section">
+                <p><span class="section-number">1. GRANT OF PERMISSION:</span> I grant [ORGANIZATION] permission to use photographs, video recordings, and other media featuring the participant for promotional, educational, and organizational purposes.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">2. USE OF MEDIA:</span> This includes, but is not limited to, use on websites, social media, newsletters, brochures, and other promotional materials. I understand that no compensation will be provided for such use.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">3. PRIVACY PROTECTION:</span> [ORGANIZATION] agrees to use media responsibly and will not share personal contact information without explicit consent. Full names of minors will not be published without parental permission.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">4. REVOCATION:</span> I understand that I may revoke this permission at any time by providing written notice to [ORGANIZATION], though materials already produced may continue to be used.</p>
+            </div>
+            {{/eq}}
+
+            {{#eq waiver_type "SAFESPORT"}}
+            <h2>SAFESPORT ACKNOWLEDGMENT AND CODE OF CONDUCT</h2>
+            
+            <div class="section">
+                <p><span class="section-number">1. SAFESPORT COMMITMENT:</span> [ORGANIZATION] is committed to providing a safe environment for all participants, free from abuse, harassment, and misconduct. We follow SafeSport guidelines and policies.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">2. CODE OF CONDUCT:</span> All participants, parents, coaches, and volunteers must adhere to our Code of Conduct, which promotes respect, sportsmanship, and positive behavior.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">3. REPORTING OBLIGATIONS:</span> I understand that suspected abuse or misconduct must be reported immediately to [ORGANIZATION] administration and appropriate authorities. Retaliation against reporters is strictly prohibited.</p>
+            </div>
+
+            <div class="section">
+                <p><span class="section-number">4. BACKGROUND CHECKS:</span> I acknowledge that all coaches, volunteers, and staff undergo background checks and SafeSport training as required by [ORGANIZATION] policies.</p>
+            </div>
+
+            <div class="important">
+                <strong>IMPORTANT:</strong> By signing below, I acknowledge that I have read and understood the SafeSport policies and agree to report any concerns immediately.
+            </div>
+            {{/eq}}
+
+            <div class="important">
+                <strong>PLEASE READ CAREFULLY:</strong> This document affects your legal rights. By signing below, you acknowledge that you have read, understood, and agree to all terms and conditions stated above.
+            </div>
+        </div>
+
+        <div class="signature-section">
+            <h2>SIGNATURES</h2>
+            
+            {{#if is_minor}}
+            <p><strong>PARENT/GUARDIAN SIGNATURE REQUIRED</strong></p>
+            <p>I am the parent or legal guardian of the minor participant named above. I have read and understood this waiver and give permission for the minor to participate in [ORGANIZATION] activities.</p>
+            
+            <div style="margin-top: 30px;">
+                <div class="signature-line"></div>
+                <p class="signature-label">Parent/Guardian Signature</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <div class="signature-line"></div>
+                <p class="signature-label">Parent/Guardian Name (Print)</p>
+            </div>
+            {{else}}
+            <div style="margin-top: 30px;">
+                <div class="signature-line"></div>
+                <p class="signature-label">Participant Signature</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <div class="signature-line"></div>
+                <p class="signature-label">Participant Name (Print)</p>
+            </div>
+            {{/if}}
+            
+            <div style="margin-top: 20px;">
+                <div class="signature-line" style="width: 200px;"></div>
+                <p class="signature-label">Date</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Document Version: {{document_version}} | Generated on [DATE]</p>
+            <p>This waiver is valid for the {{season_name}} season only.</p>
+            <p>[ORGANIZATION] | {{organization_address}}</p>
+            <p>For questions, contact: {{organization_email}} | {{organization_phone}}</p>
+        </div>
+    </div>
+</body>
+</html>

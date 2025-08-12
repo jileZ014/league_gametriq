@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "name": "Gametriq Design Tokens",
+  "version": "1.0.0",
+  "description": "NBA 2K × ESPN inspired design token system",
+  
+  "color": {
+    "base": {
+      "black": { "value": "#000000" },
+      "white": { "value": "#FFFFFF" },
+      "transparent": { "value": "transparent" }
+    },
+    
+    "dark": {
+      "900": { "value": "#0A0E1B", "description": "Deepest background" },
+      "800": { "value": "#1A1F2E", "description": "Elevated surfaces" },
+      "700": { "value": "#2C3444", "description": "Interactive elements" },
+      "600": { "value": "#3F4656", "description": "Borders dark" },
+      "500": { "value": "#555B6E", "description": "Muted text" },
+      "400": { "value": "#6B7280", "description": "Secondary text" },
+      "300": { "value": "#9CA3AF", "description": "Placeholder text" },
+      "200": { "value": "#D1D5DB", "description": "Light borders" },
+      "100": { "value": "#F3F4F6", "description": "Light background" },
+      "50": { "value": "#F9FAFB", "description": "Lightest background" }
+    },
+    
+    "primary": {
+      "50": { "value": "#FFF3E0" },
+      "100": { "value": "#FFE0B2" },
+      "200": { "value": "#FFCC80" },
+      "300": { "value": "#FFB74D" },
+      "400": { "value": "#FFA726" },
+      "500": { "value": "#FF9800", "description": "Basketball orange" },
+      "600": { "value": "#FB8C00" },
+      "700": { "value": "#F57C00" },
+      "800": { "value": "#EF6C00" },
+      "900": { "value": "#E65100" },
+      "glow": { "value": "rgba(255, 152, 0, 0.4)" }
+    },
+    
+    "semantic": {
+      "success": {
+        "base": { "value": "#10B981" },
+        "light": { "value": "#34D399" },
+        "dark": { "value": "#059669" },
+        "bg": { "value": "rgba(16, 185, 129, 0.1)" }
+      },
+      "warning": {
+        "base": { "value": "#F59E0B" },
+        "light": { "value": "#FCD34D" },
+        "dark": { "value": "#D97706" },
+        "bg": { "value": "rgba(245, 158, 11, 0.1)" }
+      },
+      "error": {
+        "base": { "value": "#EF4444" },
+        "light": { "value": "#F87171" },
+        "dark": { "value": "#DC2626" },
+        "bg": { "value": "rgba(239, 68, 68, 0.1)" }
+      },
+      "info": {
+        "base": { "value": "#3B82F6" },
+        "light": { "value": "#60A5FA" },
+        "dark": { "value": "#2563EB" },
+        "bg": { "value": "rgba(59, 130, 246, 0.1)" }
+      },
+      "live": {
+        "base": { "value": "#EF4444" },
+        "pulse": { "value": "#DC2626" },
+        "glow": { "value": "rgba(239, 68, 68, 0.6)" }
+      }
+    },
+    
+    "team": {
+      "home": {
+        "primary": { "value": "var(--team-home-primary, #2563EB)" },
+        "secondary": { "value": "var(--team-home-secondary, #DBEAFE)" },
+        "glow": { "value": "var(--team-home-glow, rgba(37, 99, 235, 0.4))" }
+      },
+      "away": {
+        "primary": { "value": "var(--team-away-primary, #DC2626)" },
+        "secondary": { "value": "var(--team-away-secondary, #FEE2E2)" },
+        "glow": { "value": "var(--team-away-glow, rgba(220, 38, 38, 0.4))" }
+      }
+    }
+  },
+  
+  "typography": {
+    "fontFamily": {
+      "display": { "value": "'Inter Display', -apple-system, BlinkMacSystemFont, sans-serif" },
+      "body": { "value": "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" },
+      "mono": { "value": "'JetBrains Mono', 'SF Mono', monospace" }
+    },
+    
+    "fontSize": {
+      "xs": { "value": "12px", "lineHeight": "16px" },
+      "sm": { "value": "14px", "lineHeight": "20px" },
+      "base": { "value": "16px", "lineHeight": "24px" },
+      "lg": { "value": "18px", "lineHeight": "28px" },
+      "xl": { "value": "24px", "lineHeight": "32px" },
+      "2xl": { "value": "32px", "lineHeight": "40px" },
+      "3xl": { "value": "48px", "lineHeight": "56px" },
+      "4xl": { "value": "72px", "lineHeight": "80px" },
+      "5xl": { "value": "96px", "lineHeight": "104px" }
+    },
+    
+    "fontWeight": {
+      "light": { "value": "300" },
+      "normal": { "value": "400" },
+      "medium": { "value": "500" },
+      "semibold": { "value": "600" },
+      "bold": { "value": "700" },
+      "extrabold": { "value": "800" },
+      "black": { "value": "900" }
+    },
+    
+    "letterSpacing": {
+      "tighter": { "value": "-0.04em" },
+      "tight": { "value": "-0.02em" },
+      "normal": { "value": "0" },
+      "wide": { "value": "0.02em" },
+      "wider": { "value": "0.04em" },
+      "widest": { "value": "0.1em" }
+    }
+  },
+  
+  "spacing": {
+    "0": { "value": "0" },
+    "1": { "value": "4px" },
+    "2": { "value": "8px" },
+    "3": { "value": "12px" },
+    "4": { "value": "16px" },
+    "5": { "value": "20px" },
+    "6": { "value": "24px" },
+    "8": { "value": "32px" },
+    "10": { "value": "40px" },
+    "12": { "value": "48px" },
+    "16": { "value": "64px" },
+    "20": { "value": "80px" },
+    "24": { "value": "96px" },
+    "32": { "value": "128px" }
+  },
+  
+  "borderRadius": {
+    "none": { "value": "0" },
+    "sm": { "value": "4px" },
+    "base": { "value": "8px" },
+    "md": { "value": "12px" },
+    "lg": { "value": "16px" },
+    "xl": { "value": "24px" },
+    "2xl": { "value": "32px" },
+    "full": { "value": "9999px" }
+  },
+  
+  "shadow": {
+    "none": { "value": "none" },
+    "sm": { "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)" },
+    "base": { "value": "0 2px 4px 0 rgba(0, 0, 0, 0.1)" },
+    "md": { "value": "0 4px 8px 0 rgba(0, 0, 0, 0.15)" },
+    "lg": { "value": "0 8px 16px 0 rgba(0, 0, 0, 0.2)" },
+    "xl": { "value": "0 16px 32px 0 rgba(0, 0, 0, 0.25)" },
+    "2xl": { "value": "0 24px 48px 0 rgba(0, 0, 0, 0.3)" },
+    "inner": { "value": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)" },
+    "glow": {
+      "sm": { "value": "0 0 8px var(--glow-color, rgba(255, 152, 0, 0.4))" },
+      "base": { "value": "0 0 16px var(--glow-color, rgba(255, 152, 0, 0.4))" },
+      "lg": { "value": "0 0 24px var(--glow-color, rgba(255, 152, 0, 0.4))" }
+    }
+  },
+  
+  "animation": {
+    "duration": {
+      "instant": { "value": "100ms" },
+      "fast": { "value": "200ms" },
+      "normal": { "value": "300ms" },
+      "slow": { "value": "500ms" },
+      "slower": { "value": "700ms" },
+      "slowest": { "value": "1000ms" }
+    },
+    
+    "timing": {
+      "linear": { "value": "linear" },
+      "easeIn": { "value": "cubic-bezier(0.4, 0, 1, 1)" },
+      "easeOut": { "value": "cubic-bezier(0, 0, 0.2, 1)" },
+      "easeInOut": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+      "easeOvershoot": { "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)" },
+      "spring": { "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)" }
+    }
+  },
+  
+  "density": {
+    "compact": {
+      "rowHeight": { "value": "32px" },
+      "padding": { "value": "8px" },
+      "fontSize": { "value": "14px" }
+    },
+    "comfortable": {
+      "rowHeight": { "value": "48px" },
+      "padding": { "value": "12px" },
+      "fontSize": { "value": "16px" }
+    },
+    "spacious": {
+      "rowHeight": { "value": "64px" },
+      "padding": { "value": "16px" },
+      "fontSize": { "value": "18px" }
+    }
+  },
+  
+  "touchTarget": {
+    "minimum": { "value": "44px", "description": "iOS minimum" },
+    "recommended": { "value": "48px", "description": "Material Design" },
+    "comfortable": { "value": "56px", "description": "Large touch" },
+    "large": { "value": "64px", "description": "Accessible" }
+  },
+  
+  "zIndex": {
+    "base": { "value": "0" },
+    "dropdown": { "value": "1000" },
+    "sticky": { "value": "1100" },
+    "modal": { "value": "1200" },
+    "popover": { "value": "1300" },
+    "tooltip": { "value": "1400" },
+    "notification": { "value": "1500" }
+  },
+  
+  "breakpoint": {
+    "xs": { "value": "320px" },
+    "sm": { "value": "640px" },
+    "md": { "value": "768px" },
+    "lg": { "value": "1024px" },
+    "xl": { "value": "1280px" },
+    "2xl": { "value": "1536px" }
+  }
+}

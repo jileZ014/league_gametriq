@@ -1,0 +1,282 @@
+# BoxScoreTable Component Specification
+
+## Overview
+ESPN-inspired dense statistical table with NBA 2K visual enhancements for displaying comprehensive game statistics.
+
+## Anatomy
+
+```
+┌──────────────────────────────────────────────┐
+│ [Team Name] [Logo]            [Total Score]  │  <- Header
+├────┬──────────────┬────┬────┬────┬────┬────┤
+│ ## │ PLAYER       │MIN │PTS │REB │AST │+/- │  <- Column Headers
+├────┼──────────────┼────┼────┼────┼────┼────┤
+│ 23 │ Player Name  │ 36 │ 28 │ 7  │ 9  │+12 │  <- Player Row
+│    │ PG • Starter │    │    │    │    │    │  <- Subtitle
+├────┼──────────────┼────┼────┼────┼────┼────┤
+│    │ BENCH        │    │    │    │    │    │  <- Section Divider
+├────┼──────────────┼────┼────┼────┼────┼────┤
+│ 15 │ Bench Player │ 18 │ 12 │ 3  │ 2  │ -3 │
+├────┴──────────────┴────┴────┴────┴────┴────┤
+│ TOTALS              240  96  35  28  +8     │  <- Footer
+│ FG: 38-84 (45.2%) • 3PT: 12-32 (37.5%)     │  <- Stats Summary
+└──────────────────────────────────────────────┘
+```
+
+## Props Interface
+
+```typescript
+interface BoxScoreTableProps {
+  // Required
+  teamName: string;
+  players: PlayerStats[];
+  teamTotals: TeamTotals;
+  
+  // Optional
+  teamLogo?: string;
+  teamColor?: string;
+  variant?: 'compact' | 'standard' | 'expanded';
+  density?: 'compact' | 'comfortable' | 'spacious';
+  columns?: ColumnConfig[];
+  sortable?: boolean;
+  selectable?: boolean;
+  showBench?: boolean;
+  highlightPlayer?: string;
+  onPlayerClick?: (player: PlayerStats) => void;
+  className?: string;
+}
+
+interface PlayerStats {
+  id: string;
+  number: string;
+  name: string;
+  position: string;
+  isStarter: boolean;
+  minutes: number;
+  points: number;
+  rebounds: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  fouls: number;
+  plusMinus: number;
+  fg: { made: number; attempted: number; };
+  threePt: { made: number; attempted: number; };
+  ft: { made: number; attempted: number; };
+}
+
+interface ColumnConfig {
+  key: keyof PlayerStats;
+  label: string;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+  format?: (value: any) => string;
+}
+```
+
+## Visual States
+
+### Density Modes
+- **Compact**: 32px rows, 12px font, minimal padding
+- **Comfortable**: 48px rows, 14px font, standard padding
+- **Spacious**: 64px rows, 16px font, generous padding
+
+### Row States
+- **Default**: Standard appearance
+- **Hover**: Background highlight + glow
+- **Selected**: Border accent + background
+- **Highlighted**: Pulsing glow effect
+- **Disabled**: Opacity 50%, no interactions
+
+### Performance Indicators
+- **High Performance**: Green text/background
+- **Low Performance**: Red text/background
+- **Average**: Default colors
+- **Leader**: Gold badge/icon
+
+## Behavior
+
+### Sorting
+- Click column header to sort
+- Arrow indicators for direction
+- Multi-column sort with Shift+Click
+- Default sort by minutes played
+
+### Interactions
+- **Click Row**: Player details
+- **Hover Cell**: Tooltip with context
+- **Right-click**: Context menu
+- **Double-click**: Quick edit (admin)
+
+### Responsive Collapse
+- **Mobile**: Key stats only (PTS, REB, AST)
+- **Tablet**: Standard stats visible
+- **Desktop**: All stats including advanced
+
+### Virtual Scrolling
+- Renders only visible rows
+- Smooth scroll performance
+- Sticky headers/footers
+- Maintains scroll position
+
+## Responsive Behavior
+
+### Mobile (320-767px)
+```css
+/* Horizontal scroll for full table */
+.box-score-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Or card-based layout */
+.player-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+```
+
+### Tablet (768-1023px)
+```css
+/* Hide secondary stats */
+.stat-secondary {
+  display: none;
+}
+
+/* Abbreviate headers */
+.header-full { display: none; }
+.header-abbr { display: block; }
+```
+
+### Desktop (1024px+)
+```css
+/* Full table with all columns */
+.box-score-desktop {
+  display: table;
+  width: 100%;
+}
+```
+
+## Accessibility
+
+### Table Semantics
+```html
+<table role="table" aria-label="Box score statistics">
+  <caption class="sr-only">Team statistics for current game</caption>
+  <thead>
+    <tr role="row">
+      <th role="columnheader" aria-sort="none">Player</th>
+    </tr>
+  </thead>
+</table>
+```
+
+### Keyboard Navigation
+- `Tab` - Move between interactive elements
+- `Arrow keys` - Navigate cells (when focused)
+- `Space` - Sort column
+- `Enter` - Select row
+- `Escape` - Clear selection
+
+### Screen Reader
+- Announces column headers
+- Reads row context
+- Provides sorting feedback
+- Indicates performance levels
+
+## Performance
+
+### Optimization Techniques
+- Virtual scrolling for large datasets
+- Memoized row components
+- Debounced sort operations
+- CSS-only hover states
+- Lazy load player images
+
+### Rendering Strategy
+```tsx
+// Virtual scrolling implementation
+const visibleRows = useMemo(() => {
+  const start = Math.floor(scrollTop / rowHeight);
+  const end = Math.ceil((scrollTop + containerHeight) / rowHeight);
+  return players.slice(start, end);
+}, [scrollTop, players]);
+```
+
+### Performance Targets
+- Initial render: <100ms
+- Sort operation: <50ms
+- Scroll FPS: 60
+- Memory per row: <1KB
+
+## Implementation Example
+
+```tsx
+import { BoxScoreTable } from '@/components/ui/box-score-table';
+
+export default function GameStats() {
+  return (
+    <BoxScoreTable
+      teamName="Phoenix Suns"
+      teamLogo="/logos/suns.svg"
+      teamColor="#FF9800"
+      players={playerStats}
+      teamTotals={totals}
+      variant="standard"
+      density="comfortable"
+      sortable={true}
+      showBench={true}
+      highlightPlayer="player-123"
+      columns={[
+        { key: 'name', label: 'Player', width: '200px' },
+        { key: 'points', label: 'PTS', align: 'center' },
+        { key: 'rebounds', label: 'REB', align: 'center' },
+        { key: 'assists', label: 'AST', align: 'center' },
+        { key: 'plusMinus', label: '+/-', align: 'center',
+          format: (val) => val > 0 ? `+${val}` : val }
+      ]}
+      onPlayerClick={(player) => showPlayerDetails(player)}
+    />
+  );
+}
+```
+
+## Design Tokens Used
+
+```css
+/* Colors */
+--background-elevated (table bg)
+--foreground (text)
+--success (positive stats)
+--error (negative stats)
+--border (cell borders)
+
+/* Typography */
+--text-sm (cells)
+--text-xs (subtitles)
+--font-mono (numbers)
+
+/* Spacing */
+--space-2 (cell padding)
+--space-1 (compact padding)
+
+/* Density */
+--density-compact-height
+--density-comfortable-height
+--density-spacious-height
+```
+
+## Testing Checklist
+
+- [ ] Sorts columns correctly
+- [ ] Virtual scroll performs smoothly
+- [ ] Responsive layouts work
+- [ ] Touch gestures functional
+- [ ] Keyboard navigation complete
+- [ ] Screen reader compatible
+- [ ] Density modes apply correctly
+- [ ] Performance targets met
+- [ ] No memory leaks with large data
+- [ ] Accessibility audit passes

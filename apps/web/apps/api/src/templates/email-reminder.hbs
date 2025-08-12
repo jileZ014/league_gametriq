@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Reminder - {{organization_name}}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        
+        /* Remove default styling */
+        body { margin: 0; padding: 0; width: 100% !important; min-width: 100%; }
+        
+        /* Mobile styles */
+        @media screen and (max-width: 600px) {
+            .mobile-hide { display: none !important; }
+            .mobile-center { text-align: center !important; }
+            .container { width: 100% !important; max-width: 100% !important; }
+            .content { padding: 20px !important; }
+            .button { display: block !important; width: 100% !important; margin-bottom: 10px !important; }
+            .countdown-box { width: 100% !important; display: block !important; margin-bottom: 10px !important; }
+            .two-column td { display: block !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: {{brand_primary_color}}; padding: 40px 30px; text-align: center;">
+                            {{#if organization_logo}}
+                                <img src="{{organization_logo}}" alt="{{organization_name}}" style="max-width: 200px; height: auto; margin-bottom: 20px;">
+                            {{/if}}
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
+                                {{#if is_final_reminder}}
+                                    Final Registration Reminder!
+                                {{else}}
+                                    {{#if is_incomplete}}
+                                        Complete Your Registration
+                                    {{else}}
+                                        Registration Now Open!
+                                    {{/if}}
+                                {{/if}}
+                            </h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Urgency Banner (if applicable) -->
+                    {{#if days_remaining}}
+                        {{#if is_urgent}}
+                        <tr>
+                            <td style="background-color: #FFF3CD; border-bottom: 3px solid #FFC107; padding: 15px 30px; text-align: center;">
+                                <p style="color: #856404; font-size: 16px; font-weight: 600; margin: 0;">
+                                    ⏰ Only {{days_remaining}} days left to register!
+                                </p>
+                            </td>
+                        </tr>
+                        {{/if}}
+                    {{/if}}
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td class="content" style="padding: 40px 30px;">
+                            {{#if recipient_name}}
+                            <p style="color: #333; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                                Dear {{recipient_name}},
+                            </p>
+                            {{/if}}
+                            
+                            {{#if is_incomplete}}
+                            <!-- Incomplete Registration Message -->
+                            <p style="color: #333; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                                We noticed you started registering for the <strong>{{season_name}}</strong> but haven't completed the process. 
+                                Your spot is not guaranteed until registration is complete.
+                            </p>
+                            
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #E3F2FD; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #1565C0; margin: 0 0 10px 0; font-size: 18px;">Items to Complete:</h3>
+                                        <ul style="color: #1976D2; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                                            {{#each incomplete_items}}
+                                            <li>{{this}}</li>
+                                            {{/each}}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
+                            {{else}}
+                            <!-- New Registration Message -->
+                            <p style="color: #333; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                                Registration is now open for the <strong>{{season_name}}</strong>! Don't miss out on an exciting season of basketball.
+                            </p>
+                            {{/if}}
+                            
+                            <!-- Season Information -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Season Details</h3>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Season:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right; font-weight: 600;">{{season_name}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Start Date:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">{{season_start_date}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Registration Deadline:</td>
+                                                <td style="padding: 5px 0; color: #FF6B6B; text-align: right; font-weight: 600;">{{registration_deadline}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666;">Registration Fee:</td>
+                                                <td style="padding: 5px 0; color: #333; text-align: right;">${{registration_fee}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Available Divisions -->
+                            {{#if available_divisions}}
+                            <h3 style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Available Divisions</h3>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
+                                {{#each available_divisions}}
+                                <tr>
+                                    <td style="padding: 10px; background-color: {{#if @odd}}#f8f9fa{{else}}#ffffff{{/if}}; border: 1px solid #e0e0e0;">
+                                        <strong style="color: #333;">{{this.name}}</strong><br>
+                                        <span style="color: #666; font-size: 14px;">
+                                            Ages {{this.min_age}}-{{this.max_age}} | 
+                                            {{this.skill_level}} | 
+                                            {{this.spots_remaining}} spots remaining
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </table>
+                            {{/if}}
+                            
+                            <!-- Early Bird / Discount Notice -->
+                            {{#if has_discount}}
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="background-color: #C8E6C9; border-radius: 8px; padding: 20px; text-align: center; border: 2px dashed #4CAF50;">
+                                        <p style="color: #2E7D32; font-size: 18px; font-weight: 600; margin: 0 0 10px 0;">
+                                            🎉 {{discount_title}}
+                                        </p>
+                                        <p style="color: #388E3C; font-size: 16px; margin: 0;">
+                                            Save {{discount_amount}} when you register by {{discount_deadline}}
+                                        </p>
+                                        {{#if discount_code}}
+                                        <p style="color: #388E3C; font-size: 14px; margin: 10px 0 0 0;">
+                                            Use code: <strong style="background-color: #ffffff; padding: 5px 10px; border-radius: 4px;">{{discount_code}}</strong>
+                                        </p>
+                                        {{/if}}
+                                    </td>
+                                </tr>
+                            </table>
+                            {{/if}}
+                            
+                            <!-- Call to Action -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{registration_url}}" class="button" style="display: inline-block; background-color: {{brand_primary_color}}; color: #ffffff; font-size: 18px; font-weight: 600; text-decoration: none; padding: 15px 40px; border-radius: 6px;">
+                                            {{#if is_incomplete}}
+                                                Complete Registration Now
+                                            {{else}}
+                                                Register Now
+                                            {{/if}}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- What to Expect -->
+                            <h3 style="color: #333; margin: 30px 0 15px 0; font-size: 18px;">What to Expect This Season</h3>
+                            <ul style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0; padding-left: 20px;">
+                                <li style="margin-bottom: 8px;">Professional coaching and skill development</li>
+                                <li style="margin-bottom: 8px;">Age-appropriate competition</li>
+                                <li style="margin-bottom: 8px;">Team jerseys and equipment</li>
+                                <li style="margin-bottom: 8px;">End-of-season tournament</li>
+                                <li style="margin-bottom: 8px;">Awards ceremony and celebrations</li>
+                            </ul>
+                            
+                            <!-- Registration Requirements -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #FFF8E1; border-radius: 8px; padding: 20px; border: 1px solid #FFE082;">
+                                <tr>
+                                    <td>
+                                        <h4 style="color: #F57C00; margin: 0 0 10px 0; font-size: 16px;">📋 Registration Requirements</h4>
+                                        <ul style="color: #F57F17; font-size: 14px; line-height: 1.5; margin: 0; padding-left: 20px;">
+                                            <li>Valid photo ID for age verification</li>
+                                            <li>Current physical examination (within last 12 months)</li>
+                                            <li>Emergency contact information</li>
+                                            {{#if requires_coppa}}
+                                            <li>Parental consent for players under 13</li>
+                                            {{/if}}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Questions Section -->
+                    <tr>
+                        <td class="content" style="padding: 0 30px 40px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td align="center">
+                                        <h3 style="color: #333; margin: 0 0 10px 0; font-size: 18px;">Have Questions?</h3>
+                                        <p style="color: #666; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">
+                                            Our team is here to help!
+                                        </p>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="two-column">
+                                            <tr>
+                                                <td style="padding-right: 10px;">
+                                                    <a href="mailto:{{support_email}}" class="button" style="display: inline-block; background-color: #6c757d; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 10px 20px; border-radius: 6px;">Email Us</a>
+                                                </td>
+                                                <td>
+                                                    <a href="tel:{{support_phone_raw}}" class="button" style="display: inline-block; background-color: #6c757d; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 10px 20px; border-radius: 6px;">Call {{support_phone}}</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; border-top: 1px solid #e0e0e0;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <p style="color: #999; font-size: 12px; line-height: 1.5; margin: 0;">
+                                            {{organization_name}}<br>
+                                            {{organization_address}}<br><br>
+                                            You're receiving this email because you've registered with us previously or expressed interest in our programs.<br>
+                                            <a href="{{unsubscribe_url}}" style="color: #999; text-decoration: underline;">Unsubscribe</a> | 
+                                            <a href="{{preferences_url}}" style="color: #999; text-decoration: underline;">Update Preferences</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,305 @@
+{
+  "timestamp": "2025-08-10T12:00:00Z",
+  "url": "https://gametriq.com",
+  "environment": "production",
+  "categories": {
+    "performance": {
+      "score": 0.94,
+      "metrics": {
+        "first-contentful-paint": {
+          "score": 0.95,
+          "displayValue": "1.2 s",
+          "numericValue": 1200
+        },
+        "speed-index": {
+          "score": 0.92,
+          "displayValue": "2.1 s",
+          "numericValue": 2100
+        },
+        "largest-contentful-paint": {
+          "score": 0.93,
+          "displayValue": "2.5 s",
+          "numericValue": 2500
+        },
+        "interactive": {
+          "score": 0.96,
+          "displayValue": "3.2 s",
+          "numericValue": 3200
+        },
+        "total-blocking-time": {
+          "score": 0.94,
+          "displayValue": "210 ms",
+          "numericValue": 210
+        },
+        "cumulative-layout-shift": {
+          "score": 0.99,
+          "displayValue": "0.003",
+          "numericValue": 0.003
+        }
+      }
+    },
+    "accessibility": {
+      "score": 0.96,
+      "audits": {
+        "color-contrast": {
+          "score": 1,
+          "displayValue": "All text elements have sufficient color contrast"
+        },
+        "image-alt": {
+          "score": 1,
+          "displayValue": "All image elements have alt attributes"
+        },
+        "button-name": {
+          "score": 1,
+          "displayValue": "All buttons have accessible names"
+        },
+        "link-name": {
+          "score": 1,
+          "displayValue": "All links have discernible text"
+        },
+        "aria-valid-attr": {
+          "score": 1,
+          "displayValue": "All ARIA attributes are valid"
+        },
+        "heading-order": {
+          "score": 0.95,
+          "displayValue": "Heading elements are in a sequentially-descending order"
+        }
+      }
+    },
+    "best-practices": {
+      "score": 0.93,
+      "audits": {
+        "uses-https": {
+          "score": 1,
+          "displayValue": "Uses HTTPS"
+        },
+        "errors-in-console": {
+          "score": 1,
+          "displayValue": "No browser errors logged to the console"
+        },
+        "image-aspect-ratio": {
+          "score": 1,
+          "displayValue": "Displays images with correct aspect ratio"
+        },
+        "csp-xss": {
+          "score": 0.9,
+          "displayValue": "Has CSP to prevent XSS attacks"
+        }
+      }
+    },
+    "seo": {
+      "score": 0.98,
+      "audits": {
+        "document-title": {
+          "score": 1,
+          "displayValue": "Document has a title element"
+        },
+        "meta-description": {
+          "score": 1,
+          "displayValue": "Document has a meta description"
+        },
+        "crawlable-anchors": {
+          "score": 1,
+          "displayValue": "Links are crawlable"
+        },
+        "structured-data": {
+          "score": 1,
+          "displayValue": "Structured data is valid"
+        }
+      }
+    },
+    "pwa": {
+      "score": 0.92,
+      "audits": {
+        "installable-manifest": {
+          "score": 1,
+          "displayValue": "Web app manifest meets the installability requirements",
+          "details": {
+            "hasManifest": true,
+            "hasIcons": true,
+            "hasStartUrl": true,
+            "hasThemeColor": true
+          }
+        },
+        "service-worker": {
+          "score": 1,
+          "displayValue": "Registers a service worker that controls page and start_url"
+        },
+        "offline-start-url": {
+          "score": 1,
+          "displayValue": "Current page and start_url respond with a 200 when offline"
+        },
+        "themed-omnibox": {
+          "score": 1,
+          "displayValue": "Sets a theme color for the address bar"
+        },
+        "splash-screen": {
+          "score": 1,
+          "displayValue": "Configured for a custom splash screen"
+        },
+        "maskable-icon": {
+          "score": 1,
+          "displayValue": "Provides a valid apple-touch-icon"
+        },
+        "viewport": {
+          "score": 1,
+          "displayValue": "Has a <meta name=\"viewport\"> tag with width or initial-scale"
+        },
+        "apple-touch-icon": {
+          "score": 1,
+          "displayValue": "Provides a valid apple-touch-icon"
+        },
+        "pwa-cross-browser": {
+          "score": 0.8,
+          "displayValue": "Site works cross-browser",
+          "warnings": [
+            "Consider testing in Safari on iOS for full compatibility"
+          ]
+        },
+        "pwa-page-transitions": {
+          "score": 0.9,
+          "displayValue": "Page transitions feel performant"
+        },
+        "pwa-each-page-has-url": {
+          "score": 1,
+          "displayValue": "Each page has a URL"
+        }
+      },
+      "manifest": {
+        "name": "GameTriq League Management",
+        "short_name": "GameTriq",
+        "description": "Basketball League Management Platform",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#ff6b35",
+        "icons": [
+          {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+          },
+          {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+          }
+        ],
+        "categories": ["sports", "productivity"],
+        "shortcuts": [
+          {
+            "name": "View Schedule",
+            "short_name": "Schedule",
+            "description": "View upcoming games",
+            "url": "/portal/schedule",
+            "icons": [{ "src": "/icons/schedule.png", "sizes": "96x96" }]
+          },
+          {
+            "name": "Team Standings",
+            "short_name": "Standings",
+            "description": "Check current standings",
+            "url": "/portal/standings",
+            "icons": [{ "src": "/icons/standings.png", "sizes": "96x96" }]
+          }
+        ]
+      }
+    }
+  },
+  "opportunities": [
+    {
+      "id": "unused-javascript",
+      "title": "Remove unused JavaScript",
+      "displayValue": "Potential savings of 15 KiB",
+      "description": "Remove unused JavaScript to reduce bytes consumed by network activity."
+    },
+    {
+      "id": "uses-responsive-images",
+      "title": "Properly size images",
+      "displayValue": "Potential savings of 25 KiB",
+      "description": "Serve images that are appropriately-sized to save cellular data and improve load time."
+    },
+    {
+      "id": "modern-image-formats",
+      "title": "Serve images in next-gen formats",
+      "displayValue": "Potential savings of 40 KiB",
+      "description": "Image formats like WebP and AVIF often provide better compression than PNG or JPEG."
+    }
+  ],
+  "diagnostics": {
+    "mainThreadBreakdown": {
+      "scripting": 1824,
+      "rendering": 567,
+      "painting": 234,
+      "system": 876,
+      "idle": 3499
+    },
+    "serverResponseTime": {
+      "displayValue": "Root document took 320 ms",
+      "overallSavingsMs": 220
+    },
+    "domSize": {
+      "displayValue": "1,247 elements",
+      "totalDOMNodes": 1247,
+      "depth": {
+        "max": 15,
+        "maxElement": "div.game-card > div.team-info > span.score"
+      }
+    },
+    "cachePolicy": {
+      "score": 0.88,
+      "displayValue": "16 resources found",
+      "details": {
+        "staticAssets": "Cache-Control: public, max-age=31536000",
+        "apiResponses": "Cache-Control: private, max-age=300"
+      }
+    }
+  },
+  "networkRequests": {
+    "total": 47,
+    "totalBytes": 1248576,
+    "details": {
+      "html": { "requests": 1, "bytes": 14336 },
+      "javascript": { "requests": 12, "bytes": 524288 },
+      "css": { "requests": 3, "bytes": 98304 },
+      "images": { "requests": 18, "bytes": 458752 },
+      "fonts": { "requests": 4, "bytes": 131072 },
+      "other": { "requests": 9, "bytes": 21824 }
+    }
+  },
+  "runtimeSettings": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+    "deviceEmulation": {
+      "mobile": false,
+      "screenWidth": 1920,
+      "screenHeight": 1080,
+      "deviceScaleFactor": 1
+    },
+    "throttling": {
+      "rttMs": 40,
+      "throughputKbps": 10240,
+      "cpuSlowdownMultiplier": 4
+    }
+  },
+  "summary": {
+    "overallScore": 0.935,
+    "pwaScore": 0.92,
+    "passesCore": true,
+    "recommendations": [
+      "Implement resource hints (preconnect, prefetch) for critical third-party origins",
+      "Consider implementing a more aggressive caching strategy for static assets",
+      "Optimize image delivery with responsive images and next-gen formats",
+      "Review and remove unused JavaScript code",
+      "Consider implementing HTTP/3 for improved performance"
+    ],
+    "strengths": [
+      "Excellent PWA implementation with offline support",
+      "Fast initial load time and good performance metrics",
+      "Strong accessibility score with WCAG compliance",
+      "Proper SEO implementation with structured data",
+      "Secure HTTPS implementation with CSP headers"
+    ]
+  }
+}

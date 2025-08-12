@@ -1,0 +1,226 @@
+{
+  "flags": {
+    "registration_v1": {
+      "name": "Registration V1",
+      "description": "New registration flow with enhanced validation and onboarding",
+      "enabled": true,
+      "rollout": {
+        "type": "percentage",
+        "value": 0,
+        "bucketBy": "userId"
+      },
+      "environments": {
+        "development": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          }
+        },
+        "staging": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 50
+          }
+        },
+        "production": {
+          "enabled": false,
+          "rollout": {
+            "type": "percentage",
+            "value": 0
+          }
+        }
+      },
+      "targets": {
+        "users": [],
+        "groups": ["beta_testers", "internal_team"]
+      },
+      "metadata": {
+        "created": "2025-08-10T00:00:00Z",
+        "updated": "2025-08-10T00:00:00Z",
+        "owner": "product_team",
+        "jira_ticket": "GT-1234",
+        "monitoring_dashboard": "https://monitoring.gametriq.com/dashboards/registration"
+      }
+    },
+    "payments_live_v1": {
+      "name": "Live Payments V1",
+      "description": "Enable live Stripe payments for tournament entry fees",
+      "enabled": false,
+      "rollout": {
+        "type": "percentage",
+        "value": 0,
+        "bucketBy": "organizationId"
+      },
+      "environments": {
+        "development": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          },
+          "config": {
+            "stripe_mode": "test",
+            "webhook_secret": "whsec_test_secret"
+          }
+        },
+        "staging": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 10
+          },
+          "config": {
+            "stripe_mode": "test",
+            "webhook_secret": "whsec_staging_secret"
+          }
+        },
+        "production": {
+          "enabled": false,
+          "rollout": {
+            "type": "percentage",
+            "value": 0
+          },
+          "config": {
+            "stripe_mode": "live",
+            "webhook_secret": "whsec_live_secret"
+          }
+        }
+      },
+      "prerequisites": ["registration_v1"],
+      "killSwitch": {
+        "enabled": true,
+        "autoDisableOnError": true,
+        "errorThreshold": 5,
+        "timeWindow": 300
+      },
+      "metadata": {
+        "created": "2025-08-10T00:00:00Z",
+        "updated": "2025-08-10T00:00:00Z",
+        "owner": "payments_team",
+        "jira_ticket": "GT-1235",
+        "compliance": ["PCI-DSS", "SOC2"],
+        "monitoring_dashboard": "https://monitoring.gametriq.com/dashboards/payments"
+      }
+    },
+    "branding_v1": {
+      "name": "Custom Branding V1",
+      "description": "Allow organizations to customize their tournament pages with branding",
+      "enabled": true,
+      "rollout": {
+        "type": "percentage",
+        "value": 25,
+        "bucketBy": "organizationId"
+      },
+      "environments": {
+        "development": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          }
+        },
+        "staging": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 75
+          }
+        },
+        "production": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 25
+          }
+        }
+      },
+      "variants": {
+        "basic": {
+          "weight": 70,
+          "config": {
+            "features": ["logo", "colors"]
+          }
+        },
+        "advanced": {
+          "weight": 30,
+          "config": {
+            "features": ["logo", "colors", "fonts", "custom_css"]
+          }
+        }
+      },
+      "metadata": {
+        "created": "2025-08-10T00:00:00Z",
+        "updated": "2025-08-10T00:00:00Z",
+        "owner": "design_team",
+        "jira_ticket": "GT-1236",
+        "monitoring_dashboard": "https://monitoring.gametriq.com/dashboards/branding"
+      }
+    },
+    "pwa_v1": {
+      "name": "Progressive Web App V1",
+      "description": "Enable PWA features including offline support and push notifications",
+      "enabled": true,
+      "rollout": {
+        "type": "percentage",
+        "value": 100,
+        "bucketBy": "userId"
+      },
+      "environments": {
+        "development": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          }
+        },
+        "staging": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          }
+        },
+        "production": {
+          "enabled": true,
+          "rollout": {
+            "type": "percentage",
+            "value": 100
+          }
+        }
+      },
+      "config": {
+        "features": {
+          "offline": true,
+          "push_notifications": true,
+          "background_sync": true,
+          "install_prompt": true
+        },
+        "cache_strategy": "network_first",
+        "notification_permissions": "prompt_on_action"
+      },
+      "metadata": {
+        "created": "2025-08-10T00:00:00Z",
+        "updated": "2025-08-10T00:00:00Z",
+        "owner": "mobile_team",
+        "jira_ticket": "GT-1237",
+        "monitoring_dashboard": "https://monitoring.gametriq.com/dashboards/pwa"
+      }
+    }
+  },
+  "global": {
+    "sampling": {
+      "enabled": true,
+      "rate": 0.1
+    },
+    "metrics": {
+      "enabled": true,
+      "endpoint": "https://metrics.gametriq.com/v1/flags"
+    },
+    "audit": {
+      "enabled": true,
+      "retention_days": 90
+    }
+  }
+}

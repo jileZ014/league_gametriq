@@ -1,0 +1,131 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Gametriq//Basketball League Manager//EN
+METHOD:PUBLISH
+X-WR-CALNAME:Phoenix Suns Basketball Schedule
+X-WR-CALDESC:Game schedule for Phoenix Suns - Phoenix Flight Youth Basketball
+X-WR-TIMEZONE:America/Phoenix
+CALSCALE:GREGORIAN
+BEGIN:VTIMEZONE
+TZID:America/Phoenix
+TZURL:http://tzurl.org/zoneinfo-outlook/America/Phoenix
+X-LIC-LOCATION:America/Phoenix
+BEGIN:STANDARD
+TZOFFSETFROM:-0700
+TZOFFSETTO:-0700
+TZNAME:MST
+DTSTART:19700101T000000
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:game-201-phoenixsuns@gametriq.app
+DTSTAMP:20240309T000000Z
+DTSTART;TZID=America/Phoenix:20240309T100000
+DTEND;TZID=America/Phoenix:20240309T113000
+SUMMARY:🏀 Phoenix Mercury vs Arizona Rattlers
+LOCATION:Steele Indian School Park, 300 E Indian School Rd, Phoenix, AZ 85012
+DESCRIPTION:Game #201\nDivision: U12\nType: REGULAR\nAway Game\n\nPhoenix Flight Youth Basketball\nQuestions? Call 602-555-0100\n\nHeat Safety: Check temperature before outdoor games (105°F threshold)
+CATEGORIES:Basketball,REGULAR,Away
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT1H
+DESCRIPTION:Game starting in 1 hour: @ Phoenix Mercury
+END:VALARM
+X-HEAT-SAFETY:Check temperature before outdoor games
+X-HEAT-THRESHOLD:105F
+END:VEVENT
+BEGIN:VEVENT
+UID:game-202-phoenixsuns@gametriq.app
+DTSTAMP:20240309T000000Z
+DTSTART;TZID=America/Phoenix:20240309T120000
+DTEND;TZID=America/Phoenix:20240309T133000
+SUMMARY:🏀 vs Phoenix Rising
+LOCATION:South Mountain Community Center, 212 E Alta Vista Rd, Phoenix, AZ 85042
+DESCRIPTION:Game #202\nDivision: U12\nType: REGULAR\nHome Game\n\nPhoenix Flight Youth Basketball\nQuestions? Call 602-555-0100\n\nHeat Safety: Check temperature before outdoor games (105°F threshold)
+CATEGORIES:Basketball,REGULAR,Home
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT1H
+DESCRIPTION:Game starting in 1 hour: vs Phoenix Rising
+END:VALARM
+X-HEAT-SAFETY:Check temperature before outdoor games
+X-HEAT-THRESHOLD:105F
+END:VEVENT
+BEGIN:VEVENT
+UID:game-301-phoenixsuns@gametriq.app
+DTSTAMP:20240316T000000Z
+DTSTART;TZID=America/Phoenix:20240316T100000
+DTEND;TZID=America/Phoenix:20240316T113000
+SUMMARY:🏀 vs Scottsdale Scorpions
+LOCATION:Desert Sky Sports Complex, 3220 W Roosevelt St, Phoenix, AZ 85009
+DESCRIPTION:Game #301\nDivision: U12\nType: REGULAR\nHome Game\n\nPhoenix Flight Youth Basketball\nQuestions? Call 602-555-0100\n\nHeat Safety: Check temperature before outdoor games (105°F threshold)
+CATEGORIES:Basketball,REGULAR,Home
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT1H
+DESCRIPTION:Game starting in 1 hour: vs Scottsdale Scorpions
+END:VALARM
+X-HEAT-SAFETY:Check temperature before outdoor games
+X-HEAT-THRESHOLD:105F
+END:VEVENT
+BEGIN:VEVENT
+UID:playoff-qf1-phoenixsuns@gametriq.app
+DTSTAMP:20240323T000000Z
+DTSTART;TZID=America/Phoenix:20240323T100000
+DTEND;TZID=America/Phoenix:20240323T113000
+SUMMARY:🏆 PLAYOFF - vs Valley Hawks
+LOCATION:Desert Sky Sports Complex, 3220 W Roosevelt St, Phoenix, AZ 85009
+DESCRIPTION:QUARTERFINAL #1\nDivision: U12 Championship\nType: PLAYOFF\nHome Game (Higher Seed)\n\nPhoenix Flight Youth Basketball\nSingle Elimination Tournament\n\nQuestions? Call 602-555-0100
+CATEGORIES:Basketball,PLAYOFF,Home
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+PRIORITY:1
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT2H
+DESCRIPTION:PLAYOFF GAME in 2 hours: vs Valley Hawks
+END:VALARM
+X-HEAT-SAFETY:Check temperature before outdoor games
+X-HEAT-THRESHOLD:105F
+END:VEVENT
+BEGIN:VEVENT
+UID:special-pictures-phoenixsuns@gametriq.app
+DTSTAMP:20240315T000000Z
+DTSTART;TZID=America/Phoenix:20240315T090000
+DTEND;TZID=America/Phoenix:20240315T120000
+SUMMARY:📸 Team Picture Day - Phoenix Suns
+LOCATION:Desert Sky Sports Complex, 3220 W Roosevelt St, Phoenix, AZ 85009
+DESCRIPTION:Team and individual photos\nUniforms required\nPlease arrive 15 minutes early\n\nPhoenix Flight Youth Basketball
+CATEGORIES:Special Event
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P1D
+DESCRIPTION:Picture Day tomorrow - uniforms required!
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:special-party-phoenixsuns@gametriq.app
+DTSTAMP:20240525T000000Z
+DTSTART;TZID=America/Phoenix:20240525T170000
+DTEND;TZID=America/Phoenix:20240525T200000
+SUMMARY:🎉 End of Season Celebration
+LOCATION:Steele Indian School Park, 300 E Indian School Rd, Phoenix, AZ 85012
+DESCRIPTION:Awards ceremony and team celebration\nAll families welcome!\nFood and refreshments provided\n\nPhoenix Flight Youth Basketball\n\nThank you for a great season!
+CATEGORIES:Special Event
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-P2D
+DESCRIPTION:Season celebration in 2 days - all families welcome!
+END:VALARM
+END:VEVENT
+END:VCALENDAR

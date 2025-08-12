@@ -1,0 +1,372 @@
+{
+  "version": "1.0.0",
+  "description": "WAF Rate Limiting Rules for Gametriq League App",
+  "updated": "2023-08-10",
+  "rules": [
+    {
+      "id": "portal-rate-limit",
+      "name": "Portal API Rate Limit",
+      "description": "Rate limit for portal endpoints - 100 requests per minute",
+      "priority": 100,
+      "action": "BLOCK",
+      "statement": {
+        "and": [
+          {
+            "rateBasedStatement": {
+              "limit": 100,
+              "aggregateKeyType": "CUSTOM_KEYS",
+              "customKeys": [
+                {
+                  "header": {
+                    "name": "x-organization-id",
+                    "textTransformations": [
+                      {
+                        "priority": 0,
+                        "type": "NONE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "ipAddress": {}
+                }
+              ],
+              "scopeDownStatement": {
+                "byteMatchStatement": {
+                  "searchString": "/api/portal/",
+                  "fieldToMatch": {
+                    "uriPath": {}
+                  },
+                  "textTransformations": [
+                    {
+                      "priority": 0,
+                      "type": "LOWERCASE"
+                    }
+                  ],
+                  "positionalConstraint": "STARTS_WITH"
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "statement": {
+                "byteMatchStatement": {
+                  "searchString": "admin",
+                  "fieldToMatch": {
+                    "header": {
+                      "name": "x-user-role"
+                    }
+                  },
+                  "textTransformations": [
+                    {
+                      "priority": 0,
+                      "type": "LOWERCASE"
+                    }
+                  ],
+                  "positionalConstraint": "EXACTLY"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "visibilityConfig": {
+        "sampledRequestsEnabled": true,
+        "cloudWatchMetricsEnabled": true,
+        "metricName": "PortalRateLimitRule"
+      }
+    },
+    {
+      "id": "payments-rate-limit",
+      "name": "Payments API Rate Limit",
+      "description": "Rate limit for payment endpoints - 20 requests per minute",
+      "priority": 90,
+      "action": "BLOCK",
+      "statement": {
+        "and": [
+          {
+            "rateBasedStatement": {
+              "limit": 20,
+              "aggregateKeyType": "CUSTOM_KEYS",
+              "customKeys": [
+                {
+                  "header": {
+                    "name": "x-organization-id",
+                    "textTransformations": [
+                      {
+                        "priority": 0,
+                        "type": "NONE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "ipAddress": {}
+                }
+              ],
+              "scopeDownStatement": {
+                "byteMatchStatement": {
+                  "searchString": "/api/payments/",
+                  "fieldToMatch": {
+                    "uriPath": {}
+                  },
+                  "textTransformations": [
+                    {
+                      "priority": 0,
+                      "type": "LOWERCASE"
+                    }
+                  ],
+                  "positionalConstraint": "STARTS_WITH"
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "statement": {
+                "byteMatchStatement": {
+                  "searchString": "admin",
+                  "fieldToMatch": {
+                    "header": {
+                      "name": "x-user-role"
+                    }
+                  },
+                  "textTransformations": [
+                    {
+                      "priority": 0,
+                      "type": "LOWERCASE"
+                    }
+                  ],
+                  "positionalConstraint": "EXACTLY"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "visibilityConfig": {
+        "sampledRequestsEnabled": true,
+        "cloudWatchMetricsEnabled": true,
+        "metricName": "PaymentsRateLimitRule"
+      },
+      "customResponse": {
+        "responseCode": 429,
+        "customResponseBodyKey": "payment-rate-limit-response",
+        "responseHeaders": [
+          {
+            "name": "Retry-After",
+            "value": "60"
+          },
+          {
+            "name": "X-RateLimit-Limit",
+            "value": "20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "admin-rate-limit",
+      "name": "Admin API Rate Limit",
+      "description": "Rate limit for admin endpoints - 200 requests per minute",
+      "priority": 110,
+      "action": "BLOCK",
+      "statement": {
+        "rateBasedStatement": {
+          "limit": 200,
+          "aggregateKeyType": "CUSTOM_KEYS",
+          "customKeys": [
+            {
+              "header": {
+                "name": "x-user-id",
+                "textTransformations": [
+                  {
+                    "priority": 0,
+                    "type": "NONE"
+                  }
+                ]
+              }
+            },
+            {
+              "ipAddress": {}
+            }
+          ],
+          "scopeDownStatement": {
+            "byteMatchStatement": {
+              "searchString": "/api/admin/",
+              "fieldToMatch": {
+                "uriPath": {}
+              },
+              "textTransformations": [
+                {
+                  "priority": 0,
+                  "type": "LOWERCASE"
+                }
+              ],
+              "positionalConstraint": "STARTS_WITH"
+            }
+          }
+        }
+      },
+      "visibilityConfig": {
+        "sampledRequestsEnabled": true,
+        "cloudWatchMetricsEnabled": true,
+        "metricName": "AdminRateLimitRule"
+      }
+    },
+    {
+      "id": "public-rate-limit",
+      "name": "Public API Rate Limit",
+      "description": "Rate limit for public endpoints - 30 requests per minute per IP",
+      "priority": 120,
+      "action": "BLOCK",
+      "statement": {
+        "rateBasedStatement": {
+          "limit": 30,
+          "aggregateKeyType": "IP",
+          "scopeDownStatement": {
+            "byteMatchStatement": {
+              "searchString": "/api/public/",
+              "fieldToMatch": {
+                "uriPath": {}
+              },
+              "textTransformations": [
+                {
+                  "priority": 0,
+                  "type": "LOWERCASE"
+                }
+              ],
+              "positionalConstraint": "STARTS_WITH"
+            }
+          }
+        }
+      },
+      "visibilityConfig": {
+        "sampledRequestsEnabled": true,
+        "cloudWatchMetricsEnabled": true,
+        "metricName": "PublicRateLimitRule"
+      }
+    },
+    {
+      "id": "global-burst-protection",
+      "name": "Global Burst Protection",
+      "description": "Protect against sudden traffic bursts - 1000 requests per minute per IP",
+      "priority": 200,
+      "action": "BLOCK",
+      "statement": {
+        "rateBasedStatement": {
+          "limit": 1000,
+          "aggregateKeyType": "IP"
+        }
+      },
+      "visibilityConfig": {
+        "sampledRequestsEnabled": true,
+        "cloudWatchMetricsEnabled": true,
+        "metricName": "GlobalBurstProtectionRule"
+      }
+    }
+  ],
+  "customResponseBodies": {
+    "payment-rate-limit-response": {
+      "contentType": "APPLICATION_JSON",
+      "content": "{\"error\": {\"code\": \"RATE_LIMIT_EXCEEDED\", \"message\": \"Too many payment requests. Please wait before trying again.\", \"retryAfter\": 60}}"
+    },
+    "default-rate-limit-response": {
+      "contentType": "APPLICATION_JSON",
+      "content": "{\"error\": {\"code\": \"RATE_LIMIT_EXCEEDED\", \"message\": \"Too many requests. Please try again later.\"}}"
+    }
+  },
+  "ipSets": {
+    "admin-bypass-ips": {
+      "name": "AdminBypassIPs",
+      "description": "IP addresses that bypass rate limiting for admin access",
+      "addresses": []
+    },
+    "blocked-ips": {
+      "name": "BlockedIPs",
+      "description": "Permanently blocked IP addresses",
+      "addresses": []
+    }
+  },
+  "regexPatternSets": {
+    "sensitive-paths": {
+      "name": "SensitivePaths",
+      "description": "Paths that require stricter rate limiting",
+      "patterns": [
+        "^/api/auth/.*",
+        "^/api/payments/.*",
+        "^/api/admin/.*",
+        "^/api/portal/registration/.*"
+      ]
+    }
+  },
+  "cloudformation": {
+    "template": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "WAF Rate Limiting Rules for Gametriq League App",
+      "Resources": {
+        "WebACL": {
+          "Type": "AWS::WAFv2::WebACL",
+          "Properties": {
+            "Name": "GametriqLeagueAppWAF",
+            "Scope": "REGIONAL",
+            "DefaultAction": {
+              "Allow": {}
+            },
+            "Rules": [],
+            "VisibilityConfig": {
+              "SampledRequestsEnabled": true,
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": "GametriqLeagueAppWAF"
+            }
+          }
+        },
+        "RateLimitLoggingConfiguration": {
+          "Type": "AWS::WAFv2::LoggingConfiguration",
+          "Properties": {
+            "ResourceArn": {
+              "Fn::GetAtt": ["WebACL", "Arn"]
+            },
+            "LogDestinationConfigs": [
+              {
+                "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/wafv2/gametriq-league-app"
+              }
+            ],
+            "RedactedFields": [
+              {
+                "SingleHeader": {
+                  "Name": "authorization"
+                }
+              },
+              {
+                "SingleHeader": {
+                  "Name": "cookie"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "monitoring": {
+    "alarms": [
+      {
+        "name": "HighRateLimitBlocks",
+        "description": "Alert when rate limit blocks exceed threshold",
+        "metric": "BlockedRequests",
+        "threshold": 100,
+        "evaluationPeriods": 2,
+        "period": 300
+      },
+      {
+        "name": "PaymentRateLimitBlocks",
+        "description": "Alert on payment endpoint rate limit blocks",
+        "metric": "PaymentsRateLimitRule",
+        "threshold": 10,
+        "evaluationPeriods": 1,
+        "period": 300
+      }
+    ]
+  }
+}

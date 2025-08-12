@@ -1,0 +1,198 @@
+{
+  "features": {
+    "public_portal_v1": {
+      "enabled": true,
+      "description": "Public league pages without authentication",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "playoffs_v1": {
+      "enabled": true,
+      "description": "Tournament bracket generation and management",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "ref_assign_v1": {
+      "enabled": true,
+      "description": "Automated referee assignment system",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "reports_v1": {
+      "enabled": true,
+      "description": "Export and reporting engine",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "ops_hardening_v1": {
+      "enabled": true,
+      "description": "Production hardening features",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "real_time_scoring": {
+      "enabled": true,
+      "description": "WebSocket-based real-time score updates",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "offline_mode": {
+      "enabled": true,
+      "description": "Offline-first PWA capabilities",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "push_notifications": {
+      "enabled": true,
+      "description": "Push notifications for game updates",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "stripe_payments": {
+      "enabled": true,
+      "description": "Stripe payment processing",
+      "rollout_percentage": 100,
+      "allowed_organizations": ["all"]
+    },
+    "mfa_authentication": {
+      "enabled": true,
+      "description": "Multi-factor authentication",
+      "rollout_percentage": 100,
+      "required_roles": ["admin", "league_manager"],
+      "allowed_organizations": ["all"]
+    },
+    "advanced_analytics": {
+      "enabled": false,
+      "description": "Advanced game and player analytics",
+      "rollout_percentage": 0,
+      "allowed_organizations": ["beta_testers"]
+    },
+    "video_streaming": {
+      "enabled": false,
+      "description": "Live game video streaming",
+      "rollout_percentage": 0,
+      "allowed_organizations": []
+    },
+    "ai_scheduling": {
+      "enabled": false,
+      "description": "AI-powered schedule optimization",
+      "rollout_percentage": 0,
+      "allowed_organizations": []
+    }
+  },
+  "maintenance_mode": {
+    "enabled": false,
+    "message": "We're currently performing scheduled maintenance. We'll be back shortly!",
+    "allowed_ips": ["10.0.0.0/8", "172.16.0.0/12"],
+    "estimated_end_time": null
+  },
+  "rate_limits": {
+    "api_global": {
+      "requests_per_minute": 1000,
+      "requests_per_hour": 30000
+    },
+    "api_authenticated": {
+      "requests_per_minute": 2000,
+      "requests_per_hour": 60000
+    },
+    "api_unauthenticated": {
+      "requests_per_minute": 100,
+      "requests_per_hour": 3000
+    },
+    "auth_endpoints": {
+      "requests_per_minute": 5,
+      "requests_per_hour": 30
+    },
+    "payment_endpoints": {
+      "requests_per_minute": 10,
+      "requests_per_hour": 100
+    }
+  },
+  "security": {
+    "enforce_https": true,
+    "cors_enabled": true,
+    "cors_origins": [
+      "https://gametriq.app",
+      "https://www.gametriq.app",
+      "https://api.gametriq.app"
+    ],
+    "csp_enabled": true,
+    "hsts_enabled": true,
+    "hsts_max_age": 31536000,
+    "session_timeout_minutes": 30,
+    "max_concurrent_sessions": 3,
+    "password_requirements": {
+      "min_length": 8,
+      "require_uppercase": true,
+      "require_lowercase": true,
+      "require_numbers": true,
+      "require_special_chars": true,
+      "password_history": 5,
+      "expiry_days": 90
+    }
+  },
+  "monitoring": {
+    "prometheus_enabled": true,
+    "prometheus_port": 9090,
+    "sentry_enabled": true,
+    "log_level": "info",
+    "performance_tracking": true,
+    "error_tracking": true,
+    "custom_metrics": true
+  },
+  "cache": {
+    "redis_enabled": true,
+    "default_ttl_seconds": 300,
+    "standings_ttl_seconds": 60,
+    "schedule_ttl_seconds": 600,
+    "user_profile_ttl_seconds": 1800
+  },
+  "webhooks": {
+    "stripe_enabled": true,
+    "stripe_retry_attempts": 3,
+    "stripe_timeout_seconds": 30,
+    "notification_retry_attempts": 3,
+    "notification_timeout_seconds": 10
+  },
+  "database": {
+    "connection_pool_size": 100,
+    "connection_timeout_ms": 5000,
+    "query_timeout_ms": 30000,
+    "enable_read_replicas": true,
+    "enable_connection_pooling": true,
+    "enable_query_logging": false
+  },
+  "storage": {
+    "s3_enabled": true,
+    "max_upload_size_mb": 10,
+    "allowed_file_types": [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf"
+    ],
+    "image_optimization": true,
+    "cdn_enabled": true
+  },
+  "email": {
+    "provider": "sendgrid",
+    "from_address": "noreply@gametriq.app",
+    "from_name": "Gametriq Basketball League",
+    "daily_limit": 10000,
+    "rate_limit_per_minute": 100
+  },
+  "sms": {
+    "provider": "twilio",
+    "enabled": true,
+    "daily_limit": 1000,
+    "rate_limit_per_minute": 10
+  },
+  "performance": {
+    "api_response_time_target_ms": 100,
+    "page_load_time_target_ms": 2000,
+    "lighthouse_score_target": 90,
+    "enable_compression": true,
+    "enable_etag": true,
+    "enable_http2": true
+  }
+}

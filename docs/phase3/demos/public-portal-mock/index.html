@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phoenix Flight Youth Basketball - Public Portal</title>
+    <meta name="description" content="Phoenix Flight Youth Basketball League - Schedules, Standings, and Tournament Brackets">
+    
+    <!-- Tailwind CSS via CDN for rapid prototyping -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles for bracket visualization -->
+    <style>
+        /* Smooth scrolling for anchor navigation */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom bracket styles */
+        .bracket-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            min-height: 600px;
+            overflow-x: auto;
+        }
+        
+        .bracket-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 2rem;
+            z-index: 10;
+        }
+        
+        .match-box {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            min-width: 200px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .match-box.winner {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .team-score {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+        }
+        
+        .team-score.winner {
+            font-weight: bold;
+            color: #059669;
+        }
+        
+        /* Bracket connecting lines */
+        .bracket-line {
+            position: absolute;
+            border: 1px solid #d1d5db;
+        }
+        
+        .horizontal-line {
+            border-top: 2px solid #d1d5db;
+        }
+        
+        .vertical-line {
+            border-left: 2px solid #d1d5db;
+        }
+        
+        /* Mobile responsive tables */
+        @media (max-width: 640px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .bracket-container {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            
+            .bracket-column {
+                width: 100%;
+            }
+        }
+        
+        /* Heat warning banner animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .heat-warning {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Print styles for schedules */
+        @media print {
+            nav, .heat-warning, .no-print {
+                display: none;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    
+    <!-- Heat Safety Warning Banner (Phoenix specific) -->
+    <div class="heat-warning bg-red-600 text-white text-center py-2 px-4 text-sm">
+        ⚠️ Heat Advisory: Games may be rescheduled if temperature exceeds 105°F (Phoenix Heat Safety Protocol)
+    </div>
+    
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo and Title -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl font-bold text-orange-600">🏀</span>
+                    </div>
+                    <div class="ml-4">
+                        <h1 class="text-xl font-bold text-gray-900">Phoenix Flight Youth Basketball</h1>
+                        <p class="text-xs text-gray-600">Spring 2024 Season</p>
+                    </div>
+                </div>
+                
+                <!-- Navigation Links (Desktop) -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="#schedule" class="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium">Schedule</a>
+                    <a href="#standings" class="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium">Standings</a>
+                    <a href="#bracket" class="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium">Playoffs</a>
+                    <a href="#officials" class="text-gray-700 hover:text-orange-600 px-3 py-2 text-sm font-medium">Officials</a>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-700 hover:text-orange-600 p-2">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <a href="#home" class="block text-gray-700 hover:text-orange-600 px-3 py-2 text-base font-medium">Home</a>
+                <a href="#schedule" class="block text-gray-700 hover:text-orange-600 px-3 py-2 text-base font-medium">Schedule</a>
+                <a href="#standings" class="block text-gray-700 hover:text-orange-600 px-3 py-2 text-base font-medium">Standings</a>
+                <a href="#bracket" class="block text-gray-700 hover:text-orange-600 px-3 py-2 text-base font-medium">Playoffs</a>
+                <a href="#officials" class="block text-gray-700 hover:text-orange-600 px-3 py-2 text-base font-medium">Officials</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Section: Home -->
+        <section id="home" class="section mb-12">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Welcome to Phoenix Flight Youth Basketball</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-orange-600 mb-2">League Information</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>📍 <strong>Location:</strong> Phoenix, Arizona</li>
+                            <li>📅 <strong>Season:</strong> Spring 2024 (March - May)</li>
+                            <li>🏀 <strong>Divisions:</strong> U8, U10, U12, U14</li>
+                            <li>👥 <strong>Teams:</strong> 48 Total</li>
+                            <li>🏟️ <strong>Venues:</strong> 8 Locations</li>
+                            <li>🌡️ <strong>Heat Protocol:</strong> Active</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-orange-600 mb-2">Quick Links</h3>
+                        <div class="space-y-3">
+                            <a href="gametriq_demo.ics" download class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                📅 Subscribe to Calendar
+                            </a>
+                            <p class="text-sm text-gray-600">Download ICS file for Google, Apple, or Outlook calendars</p>
+                            
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-700"><strong>Demo Access:</strong></p>
+                                <p class="text-xs text-gray-600">Public portal - No login required</p>
+                                <p class="text-xs text-gray-600">All times shown in MST (Phoenix)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Featured Announcement -->
+                <div class="mt-6 p-4 bg-orange-50 border-l-4 border-orange-600 rounded">
+                    <h4 class="font-semibold text-orange-900">🏆 Playoffs Begin March 23rd!</h4>
+                    <p class="text-sm text-orange-800 mt-1">U12 Division Championship Tournament - Single Elimination Format</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Schedule -->
+        <section id="schedule" class="section mb-12">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Upcoming Games - U12 Division</h2>
+                <p class="text-sm text-gray-600 mb-4">All times in MST (Phoenix timezone - no daylight saving)</p>
+                
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Game #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Home Team</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Away Team</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Completed Games -->
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 2<br>10:00 AM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">101</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Phoenix Suns</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold">52 - 48</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Phoenix Mercury</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Desert Sky Complex</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Final</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 2<br>12:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">102</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Arizona Rattlers</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold">45 - 43</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Phoenix Rising</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Paradise Valley CC</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Final</span>
+                                </td>
+                            </tr>
+                            
+                            <!-- Upcoming Games -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>10:00 AM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">201</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Phoenix Mercury</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Arizona Rattlers</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Steele Indian School</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Scheduled</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>12:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">202</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Phoenix Rising</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Phoenix Suns</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">South Mountain CC</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Scheduled</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>2:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">203</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Scottsdale Scorpions</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Desert Thunder</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Deer Valley CC</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Scheduled</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>4:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">204</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Valley Hawks</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">-</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Desert Coyotes</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Washington Park</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Scheduled</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <p class="text-sm text-gray-600">Showing games 1-6 of 240 total</p>
+                    <button class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm">
+                        View Full Schedule
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Standings -->
+        <section id="standings" class="section mb-12">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">U12 Division Standings</h2>
+                <p class="text-sm text-gray-600 mb-4">Top 8 teams qualify for playoffs</p>
+                
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">W</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">L</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">PF</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">PA</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Diff</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Streak</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Top 8 teams (playoff qualified) -->
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">1</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-orange-600 font-bold mr-2">🔥</span>
+                                        <span class="text-sm font-medium text-gray-900">Phoenix Suns</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">2</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.833</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">580</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">420</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+160</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-green-600 font-semibold">W5</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">2</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-orange-600 font-bold mr-2">⭐</span>
+                                        <span class="text-sm font-medium text-gray-900">Phoenix Mercury</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">9</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">3</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.750</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">560</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">440</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+120</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600 font-semibold">L1</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">3</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-green-600 font-bold mr-2">🐍</span>
+                                        <span class="text-sm font-medium text-gray-900">Arizona Rattlers</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">8</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">4</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.667</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">540</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">460</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+80</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-green-600 font-semibold">W1</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">4</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-red-600 font-bold mr-2">⚡</span>
+                                        <span class="text-sm font-medium text-gray-900">Phoenix Rising</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">8</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">4</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.667</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">530</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">470</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+60</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600 font-semibold">L1</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-amber-700 font-bold mr-2">🐺</span>
+                                        <span class="text-sm font-medium text-gray-900">Desert Coyotes</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">7</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.583</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">520</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">480</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+40</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-green-600 font-semibold">W2</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">6</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-teal-600 font-bold mr-2">🦂</span>
+                                        <span class="text-sm font-medium text-gray-900">Scottsdale Scorpions</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">7</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.583</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">510</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">490</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-green-600">+20</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-green-600 font-semibold">W1</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">7</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-blue-600 font-bold mr-2">⛈️</span>
+                                        <span class="text-sm font-medium text-gray-900">Desert Thunder</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">6</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">6</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.500</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">500</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">500</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">0</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-gray-600 font-semibold">W1</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50 border-b-2 border-green-600">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">8</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-red-700 font-bold mr-2">🦅</span>
+                                        <span class="text-sm font-medium text-gray-900">Valley Hawks</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">7</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">.417</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">490</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">510</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-red-600">-20</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600 font-semibold">L2</span>
+                                </td>
+                            </tr>
+                            
+                            <!-- Non-playoff teams -->
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">9</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-purple-600 font-bold mr-2">🌀</span>
+                                        <span class="text-sm text-gray-700">Monsoon Storm</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">5</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">7</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">.417</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">480</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">520</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600">-40</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600">L1</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-orange-500 font-bold mr-2">🔥</span>
+                                        <span class="text-sm text-gray-700">Phoenix Heat</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">4</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">8</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">.333</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">470</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">530</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600">-60</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600">L3</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">11</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-green-700 font-bold mr-2">🐍</span>
+                                        <span class="text-sm text-gray-700">Desert Vipers</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">3</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">9</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">.250</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">450</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">550</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600">-100</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600">L4</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <span class="text-yellow-600 font-bold mr-2">🔥</span>
+                                        <span class="text-sm text-gray-700">Firebirds</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">2</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">10</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">.167</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">420</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">580</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600">-160</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <span class="text-red-600">L6</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 p-3 bg-green-50 border-l-4 border-green-600 rounded">
+                    <p class="text-sm text-green-900"><strong>Playoff Qualification:</strong> Top 8 teams (green background) advance to single-elimination tournament</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Playoff Bracket -->
+        <section id="bracket" class="section mb-12">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">U12 Division Championship Bracket</h2>
+                <p class="text-sm text-gray-600 mb-6">Single Elimination Tournament - March 23-24, 2024</p>
+                
+                <!-- Bracket Visualization -->
+                <div class="bracket-container bg-gray-50 p-6 rounded-lg" style="min-width: 900px;">
+                    
+                    <!-- Quarterfinals Column -->
+                    <div class="bracket-column">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">QUARTERFINALS</h3>
+                        
+                        <!-- QF Match 1 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 23, 10:00 AM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(1) Phoenix Suns</span>
+                                <span class="font-bold">52</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(8) Valley Hawks</span>
+                                <span>35</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Desert Sky Complex</div>
+                        </div>
+                        
+                        <!-- QF Match 2 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 23, 12:00 PM</div>
+                            <div class="team-score">
+                                <span class="text-sm">(4) Phoenix Rising</span>
+                                <span>44</span>
+                            </div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(5) Desert Coyotes</span>
+                                <span class="font-bold">47</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">South Mountain CC</div>
+                        </div>
+                        
+                        <!-- QF Match 3 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 23, 2:00 PM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(2) Phoenix Mercury</span>
+                                <span class="font-bold">55</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(7) Desert Thunder</span>
+                                <span>48</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Steele Indian School</div>
+                        </div>
+                        
+                        <!-- QF Match 4 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 23, 4:00 PM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(3) Arizona Rattlers</span>
+                                <span class="font-bold">51</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(6) Scottsdale Scorpions</span>
+                                <span>49</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Paradise Valley CC</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Connecting Lines -->
+                    <div class="flex flex-col justify-around" style="width: 50px;">
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                    </div>
+                    
+                    <!-- Semifinals Column -->
+                    <div class="bracket-column">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">SEMIFINALS</h3>
+                        
+                        <!-- SF Match 1 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 24, 10:00 AM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(1) Phoenix Suns</span>
+                                <span class="font-bold">58</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(5) Desert Coyotes</span>
+                                <span>50</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Desert Sky Complex</div>
+                        </div>
+                        
+                        <!-- SF Match 2 -->
+                        <div class="match-box">
+                            <div class="text-xs text-gray-500 mb-1">March 24, 12:00 PM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(2) Phoenix Mercury</span>
+                                <span class="font-bold">61</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(3) Arizona Rattlers</span>
+                                <span>57</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Steele Indian School</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Connecting Lines -->
+                    <div class="flex flex-col justify-around" style="width: 50px;">
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                        <div class="horizontal-line" style="width: 50px;"></div>
+                    </div>
+                    
+                    <!-- Finals Column -->
+                    <div class="bracket-column">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">CHAMPIONSHIP</h3>
+                        
+                        <!-- Championship Match -->
+                        <div class="match-box winner">
+                            <div class="text-xs text-gray-500 mb-1">March 24, 3:00 PM</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(1) Phoenix Suns</span>
+                                <span class="font-bold">64</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(2) Phoenix Mercury</span>
+                                <span>60</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Desert Sky Complex</div>
+                            <div class="text-xs font-bold text-orange-600 mt-2">🏆 CHAMPIONS</div>
+                        </div>
+                        
+                        <!-- Third Place Match -->
+                        <div class="match-box mt-8">
+                            <div class="text-xs text-gray-500 mb-1">March 24, 1:00 PM</div>
+                            <div class="text-xs font-semibold text-gray-700 mb-1">3rd Place Game</div>
+                            <div class="team-score winner">
+                                <span class="text-sm">(3) Arizona Rattlers</span>
+                                <span class="font-bold">54</span>
+                            </div>
+                            <div class="team-score">
+                                <span class="text-sm">(5) Desert Coyotes</span>
+                                <span>46</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Paradise Valley CC</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 grid md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-orange-50 rounded-lg">
+                        <h4 class="font-semibold text-orange-900 mb-2">Tournament MVP</h4>
+                        <p class="text-sm text-gray-700">Alex Johnson - Phoenix Suns</p>
+                        <p class="text-xs text-gray-600">18.5 PPG, 6.2 APG, 4.1 RPG</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-semibold text-blue-900 mb-2">All-Tournament Team</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li class="text-xs">• Alex Johnson (Phoenix Suns)</li>
+                            <li class="text-xs">• Maya Williams (Phoenix Suns)</li>
+                            <li class="text-xs">• Noah Anderson (Phoenix Mercury)</li>
+                            <li class="text-xs">• Emma Taylor (Arizona Rattlers)</li>
+                            <li class="text-xs">• Mason Moore (Desert Coyotes)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section: Officials Assignments -->
+        <section id="officials" class="section mb-12">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Officials Assignments - This Weekend</h2>
+                <p class="text-sm text-gray-600 mb-4">Automated assignments with manual override capability</p>
+                
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Game</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teams</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Head Referee</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scorekeeper</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">201</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>10:00 AM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mercury vs Rattlers</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Steele Indian School</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Thomas Wilson</div>
+                                    <div class="text-xs text-gray-500">Advanced • $45/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Michelle Jackson</div>
+                                    <div class="text-xs text-gray-500">Beginner • $25/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmed</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">202</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>12:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Rising vs Suns</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">South Mountain CC</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Patricia Moore</div>
+                                    <div class="text-xs text-gray-500">Expert • $55/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Auto-assigned</div>
+                                    <div class="text-xs text-gray-500">Pending</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">203</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>2:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Scorpions vs Thunder</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Deer Valley CC</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Christopher Taylor</div>
+                                    <div class="text-xs text-gray-500">Intermediate • $35/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Daniel Anderson</div>
+                                    <div class="text-xs text-gray-500">Advanced • $45/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmed</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">204</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sat, Mar 9<br>4:00 PM</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Hawks vs Coyotes</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Washington Park</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Daniel Anderson</div>
+                                    <div class="text-xs text-gray-500">Advanced • $45/hr</div>
+                                    <div class="text-xs text-orange-600 font-semibold">⚠️ Travel time: 25 min</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Thomas Wilson</div>
+                                    <div class="text-xs text-gray-500">Advanced • $45/hr</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmed</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-6 grid md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-semibold text-blue-900">Assignment Stats</h4>
+                        <div class="mt-2 space-y-1">
+                            <p class="text-xs text-gray-700">Games Assigned: 4/4</p>
+                            <p class="text-xs text-gray-700">Officials Used: 5</p>
+                            <p class="text-xs text-gray-700">Auto-assigned: 75%</p>
+                            <p class="text-xs text-gray-700">Manual Override: 1</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg">
+                        <h4 class="font-semibold text-green-900">Cost Summary</h4>
+                        <div class="mt-2 space-y-1">
+                            <p class="text-xs text-gray-700">Total Hours: 12</p>
+                            <p class="text-xs text-gray-700">Estimated Cost: $480</p>
+                            <p class="text-xs text-gray-700">Average Rate: $40/hr</p>
+                            <p class="text-xs text-gray-700">Travel Comp: $25</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-orange-50 rounded-lg">
+                        <h4 class="font-semibold text-orange-900">Actions</h4>
+                        <div class="mt-2 space-y-2">
+                            <button class="w-full px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">
+                                Export Payroll CSV
+                            </button>
+                            <button class="w-full px-3 py-1 bg-white border border-orange-600 text-orange-600 text-xs rounded hover:bg-orange-50">
+                                View Full Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Phoenix Flight Youth Basketball</h3>
+                    <p class="text-sm text-gray-400">Building champions on and off the court</p>
+                    <p class="text-xs text-gray-500 mt-2">© 2024 Gametriq Platform</p>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-2">Contact</h4>
+                    <ul class="text-sm text-gray-400 space-y-1">
+                        <li>📧 info@phoenixflight.demo</li>
+                        <li>📞 (602) 555-0100</li>
+                        <li>📍 Phoenix, Arizona</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-2">Platform Info</h4>
+                    <ul class="text-sm text-gray-400 space-y-1">
+                        <li>Version: 4.2.0</li>
+                        <li>Sprint: 4 Complete</li>
+                        <li>Environment: Demo</li>
+                        <li>Status: <span class="text-green-400">Online</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Simple JavaScript for mobile menu toggle -->
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+        
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+        });
+        
+        // Smooth scroll behavior for all browsers
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

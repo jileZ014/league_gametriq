@@ -1,0 +1,384 @@
+{
+  "testSuite": "PWA Functionality Tests",
+  "executionDate": "2024-01-15",
+  "environment": {
+    "testUrl": "https://app.gametriq.com",
+    "version": "1.2.0",
+    "serviceWorkerVersion": "2.1.0"
+  },
+  "devices": [
+    {
+      "id": "ios-iphone-12",
+      "platform": "iOS",
+      "device": "iPhone 12 Pro",
+      "os": "iOS 16.3",
+      "browser": "Safari 16.3",
+      "screenSize": "1170x2532",
+      "pixelRatio": 3
+    },
+    {
+      "id": "ios-ipad-air",
+      "platform": "iOS", 
+      "device": "iPad Air",
+      "os": "iOS 16.2",
+      "browser": "Safari 16.2",
+      "screenSize": "1640x2360",
+      "pixelRatio": 2
+    },
+    {
+      "id": "android-samsung-s22",
+      "platform": "Android",
+      "device": "Samsung Galaxy S22",
+      "os": "Android 13",
+      "browser": "Chrome 120.0.6099.43",
+      "screenSize": "1080x2340",
+      "pixelRatio": 3
+    },
+    {
+      "id": "android-pixel-7",
+      "platform": "Android",
+      "device": "Google Pixel 7",
+      "os": "Android 13", 
+      "browser": "Chrome 120.0.6099.43",
+      "screenSize": "1080x2400",
+      "pixelRatio": 2.625
+    },
+    {
+      "id": "desktop-windows",
+      "platform": "Desktop",
+      "device": "Windows PC",
+      "os": "Windows 11",
+      "browser": "Chrome 120.0.6099.129",
+      "screenSize": "1920x1080",
+      "pixelRatio": 1
+    }
+  ],
+  "testResults": {
+    "installationTests": [
+      {
+        "testId": "TC-PWA-001",
+        "testName": "iOS Safari Installation",
+        "deviceId": "ios-iphone-12",
+        "status": "PASS",
+        "duration": 4250,
+        "steps": [
+          {
+            "step": "Navigate to app URL",
+            "status": "PASS",
+            "duration": 1200
+          },
+          {
+            "step": "Add to Home Screen",
+            "status": "PASS", 
+            "duration": 2000,
+            "note": "Manual process required on iOS"
+          },
+          {
+            "step": "Launch from home screen",
+            "status": "PASS",
+            "duration": 1050
+          }
+        ],
+        "screenshots": [
+          "/tests/screenshots/ios-install-prompt.png",
+          "/tests/screenshots/ios-home-screen-icon.png"
+        ],
+        "issues": [
+          "No automatic install prompt on iOS",
+          "User must manually add to home screen"
+        ]
+      },
+      {
+        "testId": "TC-PWA-002",
+        "testName": "Android Chrome Installation",
+        "deviceId": "android-samsung-s22",
+        "status": "PASS",
+        "duration": 5500,
+        "steps": [
+          {
+            "step": "Navigate to app URL",
+            "status": "PASS",
+            "duration": 1100
+          },
+          {
+            "step": "Install prompt appears",
+            "status": "PASS",
+            "duration": 2000,
+            "note": "Prompt appeared after 3 page views"
+          },
+          {
+            "step": "Complete installation",
+            "status": "PASS",
+            "duration": 1800
+          },
+          {
+            "step": "Launch from app drawer",
+            "status": "PASS",
+            "duration": 600
+          }
+        ],
+        "screenshots": [
+          "/tests/screenshots/android-install-banner.png",
+          "/tests/screenshots/android-app-drawer.png"
+        ]
+      },
+      {
+        "testId": "TC-PWA-003",
+        "testName": "Desktop Chrome Installation",
+        "deviceId": "desktop-windows",
+        "status": "PASS",
+        "duration": 2500,
+        "steps": [
+          {
+            "step": "Install icon in address bar",
+            "status": "PASS",
+            "duration": 500
+          },
+          {
+            "step": "Complete installation",
+            "status": "PASS",
+            "duration": 1200
+          },
+          {
+            "step": "Launch as desktop app",
+            "status": "PASS",
+            "duration": 800
+          }
+        ],
+        "screenshots": [
+          "/tests/screenshots/desktop-install-icon.png",
+          "/tests/screenshots/desktop-app-window.png"
+        ]
+      }
+    ],
+    "offlineTests": [
+      {
+        "testId": "TC-OFF-001",
+        "testName": "Static Asset Caching",
+        "deviceId": "android-pixel-7",
+        "status": "PASS",
+        "duration": 3200,
+        "cachedAssets": {
+          "html": 1,
+          "css": 3,
+          "js": 5,
+          "images": 24,
+          "fonts": 4,
+          "total": 37,
+          "totalSize": "4.2MB"
+        },
+        "performance": {
+          "onlineLoadTime": 1850,
+          "offlineLoadTime": 320,
+          "improvement": "82.7%"
+        }
+      },
+      {
+        "testId": "TC-OFF-002",
+        "testName": "Dynamic Data Caching",
+        "deviceId": "ios-iphone-12",
+        "status": "PASS",
+        "duration": 4500,
+        "apisCached": [
+          {
+            "endpoint": "/api/schedule",
+            "size": "45KB",
+            "strategy": "NetworkFirst",
+            "offlineAvailable": true
+          },
+          {
+            "endpoint": "/api/teams",
+            "size": "120KB",
+            "strategy": "NetworkFirst",
+            "offlineAvailable": true
+          },
+          {
+            "endpoint": "/api/standings", 
+            "size": "28KB",
+            "strategy": "NetworkFirst",
+            "offlineAvailable": true
+          }
+        ],
+        "lastUpdated": "2024-01-15T10:30:00Z"
+      },
+      {
+        "testId": "TC-OFF-003",
+        "testName": "Offline Page Navigation",
+        "deviceId": "android-samsung-s22",
+        "status": "PASS",
+        "duration": 2800,
+        "navigationTests": [
+          {
+            "from": "home",
+            "to": "schedule",
+            "cached": true,
+            "loadTime": 250
+          },
+          {
+            "from": "schedule",
+            "to": "teams",
+            "cached": true,
+            "loadTime": 180
+          },
+          {
+            "from": "teams",
+            "to": "stats",
+            "cached": false,
+            "loadTime": 400,
+            "result": "Offline fallback page shown"
+          }
+        ]
+      },
+      {
+        "testId": "TC-OFF-005",
+        "testName": "Form Submission Offline",
+        "deviceId": "android-pixel-7",
+        "status": "PASS",
+        "duration": 6200,
+        "syncQueue": {
+          "itemsQueued": 3,
+          "syncTriggered": true,
+          "syncDuration": 1800,
+          "allSynced": true
+        },
+        "forms": [
+          {
+            "type": "gameScore",
+            "queuedAt": "2024-01-15T11:00:00Z",
+            "syncedAt": "2024-01-15T11:02:30Z",
+            "status": "SUCCESS"
+          },
+          {
+            "type": "playerStats",
+            "queuedAt": "2024-01-15T11:01:00Z",
+            "syncedAt": "2024-01-15T11:02:32Z",
+            "status": "SUCCESS"
+          }
+        ]
+      }
+    ],
+    "performanceTests": [
+      {
+        "testId": "TC-OFF-009",
+        "testName": "Offline Performance Metrics",
+        "results": {
+          "pageLoadTime": {
+            "online": {
+              "avg": 1842,
+              "min": 1520,
+              "max": 2103
+            },
+            "offline": {
+              "avg": 287,
+              "min": 215,
+              "max": 402
+            }
+          },
+          "cacheResponseTime": {
+            "staticAssets": {
+              "avg": 42,
+              "min": 18,
+              "max": 67
+            },
+            "apiCache": {
+              "avg": 78,
+              "min": 45,
+              "max": 123
+            }
+          },
+          "storageUsage": {
+            "cacheStorage": "42.3MB",
+            "indexedDB": "18.7MB",
+            "localStorage": "156KB",
+            "total": "61.2MB"
+          }
+        }
+      }
+    ],
+    "updateTests": [
+      {
+        "testId": "TC-PWA-006",
+        "testName": "Update Prompt Test",
+        "deviceId": "desktop-windows",
+        "status": "PASS",
+        "duration": 4500,
+        "updateProcess": {
+          "detectionTime": 1200,
+          "promptShown": true,
+          "userAction": "accepted",
+          "updateDuration": 2100,
+          "appReloaded": true,
+          "dataPreserved": true
+        }
+      }
+    ],
+    "platformSpecificIssues": [
+      {
+        "platform": "iOS",
+        "issues": [
+          {
+            "issue": "No automatic install prompts",
+            "severity": "MEDIUM",
+            "workaround": "Added installation instructions in app"
+          },
+          {
+            "issue": "Limited to 50MB offline storage",
+            "severity": "HIGH",
+            "workaround": "Implemented selective caching strategy"
+          },
+          {
+            "issue": "No background sync support",
+            "severity": "MEDIUM", 
+            "workaround": "Using timer-based sync when app opens"
+          },
+          {
+            "issue": "No web push notifications",
+            "severity": "LOW",
+            "workaround": "In-app notifications only"
+          }
+        ]
+      },
+      {
+        "platform": "Android",
+        "issues": [
+          {
+            "issue": "Install prompt timing varies",
+            "severity": "LOW",
+            "workaround": "Manual install button always available"
+          },
+          {
+            "issue": "WebAPK update delay",
+            "severity": "LOW",
+            "workaround": "Force update prompt in app"
+          }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "totalTests": 15,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 1,
+    "duration": 52350,
+    "coverage": {
+      "installation": "100%",
+      "offlineFunctionality": "95%",
+      "backgroundSync": "90%",
+      "performance": "100%"
+    },
+    "recommendations": [
+      "Implement more aggressive caching for iOS due to storage limits",
+      "Add offline indicator banner for better UX",
+      "Consider implementing periodic background sync for Android",
+      "Add retry logic for failed sync operations",
+      "Optimize image sizes for faster offline loading"
+    ]
+  },
+  "metadata": {
+    "testRunner": "PWA Test Suite v2.0",
+    "executedBy": "QA Team",
+    "reportGeneratedAt": "2024-01-15T15:45:00Z",
+    "nextTestDate": "2024-02-15"
+  }
+}
