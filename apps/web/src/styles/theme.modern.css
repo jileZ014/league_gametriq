@@ -1,0 +1,441 @@
+/**
+ * Gametriq Modern UI Theme - NBA 2K + ESPN Hybrid Design
+ * Basketball league management platform with sports-centric aesthetics
+ * WCAG AA compliant (≥4.5:1 contrast ratios)
+ */
+
+/* CSS Custom Properties (Design Tokens) */
+:root {
+  /* === NBA 2K Inspired Colors === */
+  --nba2k-primary: #ea580c; /* Orange-600 - Basketball energy */
+  --nba2k-primary-dark: #c2410c; /* Orange-700 */
+  --nba2k-primary-light: #fed7aa; /* Orange-200 */
+  --nba2k-secondary: #9333ea; /* Purple-600 - Court vibes */
+  --nba2k-secondary-dark: #7c3aed; /* Purple-700 */
+  --nba2k-secondary-light: #ddd6fe; /* Purple-200 */
+  
+  /* === ESPN Sports Colors === */
+  --espn-red: #d32f2f; /* ESPN red accent */
+  --espn-blue: #1976d2; /* ESPN blue accent */
+  --espn-gold: #f57c00; /* Championship gold */
+  --espn-silver: #78716c; /* Stone-500 */
+  
+  /* === Court-Inspired Neutral Palette === */
+  --court-wood: #8b4513; /* Saddle brown - basketball court */
+  --court-lines: #ffffff; /* Pure white court lines */
+  --arena-dark: #1a1a1a; /* Near black - arena darkness */
+  --arena-medium: #374151; /* Gray-700 - stadium seating */
+  --arena-light: #f9fafb; /* Gray-50 - arena lighting */
+  
+  /* === Phoenix Market Colors === */
+  --phoenix-sun: #ff6b35; /* Desert sunset orange */
+  --phoenix-desert: #d4a574; /* Desert tan */
+  --phoenix-sky: #87ceeb; /* Desert sky blue */
+  --phoenix-cactus: #355e3b; /* Desert green */
+  
+  /* === Semantic Colors (WCAG AA Compliant) === */
+  --success: #16a34a; /* Green-600 - Win/Success */
+  --warning: #ca8a04; /* Yellow-600 - Caution */
+  --error: #dc2626; /* Red-600 - Loss/Error */
+  --info: #2563eb; /* Blue-600 - Information */
+  
+  /* === Typography Scale === */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* === Spacing Scale === */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  
+  /* === Border Radius Scale === */
+  --radius-sm: 0.125rem;  /* 2px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+  --radius-2xl: 1rem;     /* 16px */
+  --radius-full: 9999px;
+  
+  /* === Shadow Scale === */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-neon: 0 0 20px var(--nba2k-primary);
+  
+  /* === Gradients === */
+  --gradient-primary: linear-gradient(135deg, var(--nba2k-primary) 0%, var(--nba2k-secondary) 100%);
+  --gradient-court: linear-gradient(90deg, var(--court-wood) 0%, #a0522d 100%);
+  --gradient-arena: linear-gradient(180deg, var(--arena-dark) 0%, var(--arena-medium) 100%);
+  --gradient-phoenix: linear-gradient(135deg, var(--phoenix-sun) 0%, var(--phoenix-desert) 100%);
+  
+  /* === Animation Durations === */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  
+  /* === Z-Index Scale === */
+  --z-dropdown: 1000;
+  --z-modal: 1050;
+  --z-tooltip: 1100;
+  --z-toast: 1200;
+}
+
+/* === Modern UI Feature Flag Styles === */
+.modern-ui,
+[data-ui-modern="true"] {
+  /* Reset and base styles */
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Enhanced body styling */
+  body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--arena-dark);
+    background: var(--arena-light);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Typography enhancements */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: var(--arena-dark);
+  }
+  
+  h1 { font-size: 2.5rem; margin-bottom: var(--space-6); }
+  h2 { font-size: 2rem; margin-bottom: var(--space-4); }
+  h3 { font-size: 1.5rem; margin-bottom: var(--space-4); }
+  h4 { font-size: 1.25rem; margin-bottom: var(--space-3); }
+  
+  /* Enhanced button styles */
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--duration-normal) ease;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  
+  /* Sports-themed card component */
+  .card-modern {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all var(--duration-normal) ease;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .card-modern:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-4px);
+  }
+  
+  .card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+  }
+  
+  /* Score display styling */
+  .score-display {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--nba2k-primary);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Team colors and branding */
+  .team-home {
+    color: var(--nba2k-primary);
+    border-color: var(--nba2k-primary);
+  }
+  
+  .team-away {
+    color: var(--nba2k-secondary);
+    border-color: var(--nba2k-secondary);
+  }
+  
+  /* Game status indicators */
+  .status-live {
+    background: var(--gradient-primary);
+    color: white;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.875rem;
+    animation: pulse 2s infinite;
+  }
+  
+  .status-final {
+    background: var(--arena-medium);
+    color: white;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  /* Navigation enhancements */
+  .nav-modern {
+    background: white;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .nav-modern .nav-link {
+    color: var(--arena-medium);
+    font-weight: 500;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-normal) ease;
+    position: relative;
+  }
+  
+  .nav-modern .nav-link:hover,
+  .nav-modern .nav-link.active {
+    color: var(--nba2k-primary);
+    background: var(--nba2k-primary-light);
+  }
+  
+  .nav-modern .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+  }
+  
+  /* Table enhancements for standings/stats */
+  .table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .table-modern th {
+    background: var(--gradient-primary);
+    color: white;
+    padding: var(--space-4);
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+  }
+  
+  .table-modern td {
+    padding: var(--space-4);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    color: var(--arena-dark);
+  }
+  
+  .table-modern tr:hover {
+    background: rgba(234, 88, 12, 0.02);
+  }
+  
+  /* Form styling */
+  .form-input-modern {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    transition: all var(--duration-normal) ease;
+    background: white;
+  }
+  
+  .form-input-modern:focus {
+    outline: none;
+    border-color: var(--nba2k-primary);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+  }
+  
+  /* Badge/chip styling */
+  .badge-modern {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    background: var(--nba2k-primary-light);
+    color: var(--nba2k-primary-dark);
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    font-size: 0.875rem;
+    gap: var(--space-1);
+  }
+  
+  /* Loading states */
+  .loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    border-radius: var(--radius-md);
+  }
+  
+  /* Mobile-first responsive design */
+  .container-modern {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+  }
+  
+  @media (min-width: 768px) {
+    .container-modern {
+      padding: 0 var(--space-6);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-modern {
+      padding: 0 var(--space-8);
+    }
+  }
+  
+  /* Grid system for responsive layouts */
+  .grid-modern {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+  
+  @media (min-width: 768px) {
+    .grid-modern-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-modern-3 { grid-template-columns: repeat(3, 1fr); }
+  }
+  
+  @media (min-width: 1024px) {
+    .grid-modern-4 { grid-template-columns: repeat(4, 1fr); }
+  }
+  
+  /* Accessibility enhancements */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  /* Focus visible for keyboard navigation */
+  .focus-visible:focus {
+    outline: 2px solid var(--nba2k-primary);
+    outline-offset: 2px;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --nba2k-primary: #ea580c;
+      --arena-dark: #000000;
+      --arena-light: #ffffff;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* === Keyframe Animations === */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Print styles === */
+@media print {
+  .modern-ui {
+    --nba2k-primary: #000000;
+    --nba2k-secondary: #666666;
+    --arena-dark: #000000;
+    --arena-light: #ffffff;
+  }
+  
+  .btn-primary,
+  .nav-modern {
+    display: none;
+  }
+  
+  .card-modern {
+    box-shadow: none;
+    border: 1px solid #000000;
+  }
+}

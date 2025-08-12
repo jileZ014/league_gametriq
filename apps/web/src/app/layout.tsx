@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Roboto, Roboto_Mono, Roboto_Flex } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { ModernUIProvider } from '@/components/providers/modern-ui-provider'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { cn } from '@/lib/utils'
 import '@/styles/globals.css'
+import { InstallPrompt } from '@/components/InstallPrompt'
+import { UpdatePrompt } from '@/components/UpdatePrompt'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
 
 // Font configurations
 const inter = Inter({
@@ -96,7 +100,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -160,7 +164,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ff9800" />
         
         {/* Additional PWA configuration */}
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="shortcut icon" href="/favicon.ico" />
         
         {/* Heat safety and Phoenix-specific meta */}
@@ -198,37 +202,85 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
 
         {/* Providers */}
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
+        <ModernUIProvider 
+          theme="auto" 
+          enableModernUI={process.env.NEXT_PUBLIC_UI_MODERN_V1 === '1'}
         >
-          <AuthProvider>
-            <QueryProvider>
-              {/* Main application content */}
-              <div className="relative flex min-h-screen flex-col">
-                {children}
-              </div>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange={false}
+          >
+            <AuthProvider>
+              <QueryProvider>
+                {/* Main application content */}
+                <div className="relative flex min-h-screen flex-col">
+                  {children}
+                </div>
 
-              {/* Global toast notifications */}
-              <Toaster />
-            </QueryProvider>
-          </AuthProvider>
-        </ThemeProvider>
+                {/* Global toast notifications */}
+                <Toaster />
+                
+                {/* PWA Install Prompt */}
+                <InstallPrompt />
+                
+                {/* PWA Update Prompt */}
+                <UpdatePrompt />
+                
+                {/* Offline Indicator */}
+                <OfflineIndicator />
+              </QueryProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ModernUIProvider>
 
-        {/* Service Worker Registration */}
+        {/* Enhanced Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful');
-                  }, function(err) {
-                    console.log('ServiceWorker registration failed');
-                  });
+                window.addEventListener('load', async function() {
+                  try {
+                    const registration = await navigator.serviceWorker.register('/sw.js', {
+                      scope: '/',
+                      updateViaCache: 'none'
+                    });
+                    
+                    console.log('ServiceWorker registration successful with scope:', registration.scope);
+                    
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                      const newWorker = registration.installing;
+                      if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New content is available
+                            window.dispatchEvent(new CustomEvent('swUpdated', { detail: registration }));
+                          }
+                        });
+                      }
+                    });
+                    
+                    // Periodic update check
+                    setInterval(() => {
+                      registration.update();
+                    }, 60 * 60 * 1000); // Check every hour
+                    
+                  } catch (error) {
+                    console.error('ServiceWorker registration failed:', error);
+                  }
                 });
+                
+                // Handle controller change
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  window.location.reload();
+                });
+                
+                // Enable navigation preload if supported
+                if ('navigationPreload' in self.registration) {
+                  await self.registration.navigationPreload.enable();
+                }
               }
             `,
           }}

@@ -109,17 +109,17 @@ module.exports = {
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: 'var(--radius-lg, var(--radius))',
+        md: 'var(--radius-md, calc(var(--radius) - 2px))',
+        sm: 'var(--radius-sm, calc(var(--radius) - 4px))',
       },
       fontFamily: {
         // Primary font family (Material Design 3)
-        sans: ['Roboto', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-body)', 'Roboto', 'system-ui', 'sans-serif'],
         // Monospace for game clock and stats
         mono: ['Roboto Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'monospace'],
         // Display font for headers
-        display: ['Roboto Flex', 'Roboto', 'system-ui', 'sans-serif'],
+        display: ['var(--font-heading)', 'Roboto Flex', 'Roboto', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // Material Design 3 Typography Scale
@@ -141,11 +141,11 @@ module.exports = {
       },
       spacing: {
         // 4px base unit spacing scale
-        'xs': '4px',
-        'sm': '8px',
-        'md': '16px',
-        'lg': '24px',
-        'xl': '32px',
+        'xs': 'var(--spacing-xs, 4px)',
+        'sm': 'var(--spacing-sm, 8px)',
+        'md': 'var(--spacing-md, 16px)',
+        'lg': 'var(--spacing-lg, 24px)',
+        'xl': 'var(--spacing-xl, 32px)',
         '2xl': '48px',
         '3xl': '64px',
         // Touch target minimums
