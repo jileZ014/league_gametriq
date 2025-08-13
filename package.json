@@ -1,7 +1,10 @@
 {
   "devDependencies": {
     "@playwright/test": "^1.54.2",
-    "playwright": "^1.54.2"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.5",
+    "playwright": "^1.54.2",
+    "ts-jest": "^29.4.1"
   },
   "name": "gametriq-league-app",
   "version": "1.0.0",
