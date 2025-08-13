@@ -1,0 +1,511 @@
+# Auto-Scaling Configuration for Basketball League Platform
+# Designed for 80+ leagues, 3,500+ teams, 1000+ concurrent Saturday users
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Auto-scaling configuration for Legacy Youth Sports basketball platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [staging, production]
+  
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+
+Resources:
+  # Web Tier Launch Template
+  WebTierLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${Environment}-web-tier-template"
+      LaunchTemplateData:
+        ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2023
+        InstanceType: t3.medium
+        SecurityGroupIds:
+          - !Ref WebTierSecurityGroup
+        KeyName: !Ref KeyName
+        IamInstanceProfile:
+          Arn: !GetAtt WebTierInstanceProfile.Arn
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y docker
+            systemctl start docker
+            systemctl enable docker
+            usermod -a -G docker ec2-user
+            
+            # Install CloudWatch agent
+            wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+            rpm -U ./amazon-cloudwatch-agent.rpm
+            
+            # Pull and run web application
+            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/basketball-web:latest
+            docker run -d -p 80:3000 --name web-app \
+              -e NODE_ENV=production \
+              -e NEXT_PUBLIC_API_URL=https://api.legacyyouthsports.com \
+              -e DATABASE_URL=${DatabaseURL} \
+              ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/basketball-web:latest
+
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub "${Environment}-web-tier"
+              - Key: Environment
+                Value: !Ref Environment
+              - Key: Tier
+                Value: web
+
+  # API Tier Launch Template  
+  APITierLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${Environment}-api-tier-template"
+      LaunchTemplateData:
+        ImageId: ami-0c02fb55956c7d316
+        InstanceType: t3.large
+        SecurityGroupIds:
+          - !Ref APITierSecurityGroup
+        KeyName: !Ref KeyName
+        IamInstanceProfile:
+          Arn: !GetAtt APITierInstanceProfile.Arn
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y docker
+            systemctl start docker
+            systemctl enable docker
+            usermod -a -G docker ec2-user
+            
+            # Install CloudWatch agent
+            wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+            rpm -U ./amazon-cloudwatch-agent.rpm
+            
+            # Pull and run API application
+            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/basketball-api:latest
+            docker run -d -p 3000:3000 --name api-app \
+              -e NODE_ENV=production \
+              -e DATABASE_URL=${DatabaseURL} \
+              -e REDIS_URL=${RedisURL} \
+              -e JWT_SECRET=${JWTSecret} \
+              ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/basketball-api:latest
+
+  # Web Tier Auto Scaling Group
+  WebTierAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${Environment}-web-tier-asg"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebTierLaunchTemplate
+        Version: !GetAtt WebTierLaunchTemplate.LatestVersionNumber
+      MinSize: 2
+      MaxSize: 20
+      DesiredCapacity: 3
+      TargetGroupARNs:
+        - !Ref WebTierTargetGroup
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      DefaultCooldown: 300
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-web-tier-asg"
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: !Ref Environment
+          PropagateAtLaunch: true
+
+  # API Tier Auto Scaling Group
+  APITierAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${Environment}-api-tier-asg"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref APITierLaunchTemplate
+        Version: !GetAtt APITierLaunchTemplate.LatestVersionNumber
+      MinSize: 3
+      MaxSize: 50
+      DesiredCapacity: 5
+      TargetGroupARNs:
+        - !Ref APITierTargetGroup
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      DefaultCooldown: 300
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-api-tier-asg"
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: !Ref Environment
+          PropagateAtLaunch: true
+
+  # Web Tier Scaling Policies
+  WebTierScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref WebTierAutoScalingGroup
+      Cooldown: 300
+      ScalingAdjustment: 2
+      PolicyType: SimpleScaling
+
+  WebTierScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref WebTierAutoScalingGroup
+      Cooldown: 600
+      ScalingAdjustment: -1
+      PolicyType: SimpleScaling
+
+  # API Tier Scaling Policies
+  APITierScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref APITierAutoScalingGroup
+      Cooldown: 180
+      ScalingAdjustment: 3
+      PolicyType: SimpleScaling
+
+  APITierScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref APITierAutoScalingGroup
+      Cooldown: 600
+      ScalingAdjustment: -2
+      PolicyType: SimpleScaling
+
+  # Tournament Day Scheduled Scaling - Web Tier
+  WebTierTournamentScaleUpAction:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref WebTierAutoScalingGroup
+      DesiredCapacity: 15
+      MinSize: 10
+      MaxSize: 30
+      Recurrence: "0 6 * * SAT"  # Saturday 6 AM MST
+      TimeZone: "America/Phoenix"
+
+  WebTierTournamentScaleDownAction:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref WebTierAutoScalingGroup
+      DesiredCapacity: 3
+      MinSize: 2
+      MaxSize: 20
+      Recurrence: "0 22 * * SAT"  # Saturday 10 PM MST
+
+  # Tournament Day Scheduled Scaling - API Tier
+  APITierTournamentScaleUpAction:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref APITierAutoScalingGroup
+      DesiredCapacity: 25
+      MinSize: 15
+      MaxSize: 75
+      Recurrence: "0 6 * * SAT"  # Saturday 6 AM MST
+      TimeZone: "America/Phoenix"
+
+  APITierTournamentScaleDownAction:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref APITierAutoScalingGroup
+      DesiredCapacity: 5
+      MinSize: 3
+      MaxSize: 50
+      Recurrence: "0 22 * * SAT"  # Saturday 10 PM MST
+
+  # CloudWatch Alarms for Web Tier
+  WebTierHighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-web-tier-high-cpu"
+      AlarmDescription: "Web tier CPU utilization is too high"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 120
+      EvaluationPeriods: 2
+      Threshold: 70
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref WebTierAutoScalingGroup
+      AlarmActions:
+        - !Ref WebTierScaleUpPolicy
+
+  WebTierLowCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-web-tier-low-cpu"
+      AlarmDescription: "Web tier CPU utilization is low"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 5
+      Threshold: 30
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref WebTierAutoScalingGroup
+      AlarmActions:
+        - !Ref WebTierScaleDownPolicy
+
+  # CloudWatch Alarms for API Tier
+  APITierHighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-api-tier-high-cpu"
+      AlarmDescription: "API tier CPU utilization is too high"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 120
+      EvaluationPeriods: 2
+      Threshold: 70
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref APITierAutoScalingGroup
+      AlarmActions:
+        - !Ref APITierScaleUpPolicy
+
+  APITierLowCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-api-tier-low-cpu"
+      AlarmDescription: "API tier CPU utilization is low"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 5
+      Threshold: 30
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref APITierAutoScalingGroup
+      AlarmActions:
+        - !Ref APITierScaleDownPolicy
+
+  # Request Queue Depth Alarm for API Tier
+  APITierHighRequestQueueAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-api-tier-high-request-queue"
+      AlarmDescription: "API tier request queue depth is too high"
+      MetricName: TargetResponseTime
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 2.0  # 2 seconds response time
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt APITierTargetGroup.TargetGroupFullName
+      AlarmActions:
+        - !Ref APITierScaleUpPolicy
+
+  # Security Groups
+  WebTierSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for web tier instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ApplicationLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/8  # VPC CIDR only
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-web-tier-sg"
+
+  APITierSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for API tier instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref ApplicationLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/8  # VPC CIDR only
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-api-tier-sg"
+
+  # Application Load Balancer Security Group
+  ApplicationLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for application load balancer
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-alb-sg"
+
+  # IAM Roles and Instance Profiles
+  WebTierRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-web-tier-role"
+
+  APITierRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: 
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:basketball-app/*"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-api-tier-role"
+
+  WebTierInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref WebTierRole
+
+  APITierInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref APITierRole
+
+  # Target Groups (referenced but defined elsewhere)
+  WebTierTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${Environment}-web-tg"
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      HealthCheckTimeoutSeconds: 10
+      TargetType: instance
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-web-tg"
+
+  APITierTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${Environment}-api-tg"
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      HealthCheckPath: /api/health
+      HealthCheckIntervalSeconds: 15
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      HealthCheckTimeoutSeconds: 10
+      TargetType: instance
+      Stickiness:
+        Enabled: true
+        Type: lb_cookie
+        DurationSeconds: 3600
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-api-tg"
+
+# Note: VPC, Subnets, and other networking resources would be defined 
+# in a separate networking stack or imported from existing infrastructure
+
+Outputs:
+  WebTierAutoScalingGroupName:
+    Description: Web tier auto scaling group name
+    Value: !Ref WebTierAutoScalingGroup
+    Export:
+      Name: !Sub "${Environment}-web-asg-name"
+
+  APITierAutoScalingGroupName:
+    Description: API tier auto scaling group name  
+    Value: !Ref APITierAutoScalingGroup
+    Export:
+      Name: !Sub "${Environment}-api-asg-name"
+
+  WebTierTargetGroupArn:
+    Description: Web tier target group ARN
+    Value: !Ref WebTierTargetGroup
+    Export:
+      Name: !Sub "${Environment}-web-tg-arn"
+
+  APITierTargetGroupArn:
+    Description: API tier target group ARN
+    Value: !Ref APITierTargetGroup
+    Export:
+      Name: !Sub "${Environment}-api-tg-arn"

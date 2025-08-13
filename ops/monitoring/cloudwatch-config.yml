@@ -1,0 +1,676 @@
+# Comprehensive CloudWatch Configuration for Basketball League Platform
+# Designed for 80+ leagues, 3,500+ teams, 1000+ concurrent Saturday users
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch monitoring and alerting for Legacy Youth Sports basketball platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [staging, production]
+  
+  AlertingEmail:
+    Type: String
+    Default: ops@legacyyouthsports.com
+    Description: Email address for critical alerts
+  
+  SlackWebhookUrl:
+    Type: String
+    NoEcho: true
+    Description: Slack webhook URL for notifications
+
+Resources:
+  # SNS Topics for Different Alert Types
+  CriticalAlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-critical-alerts"
+      DisplayName: "Critical Basketball Platform Alerts"
+      KmsMasterKeyId: alias/aws/sns
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-critical-alerts"
+        - Key: AlertType
+          Value: critical
+
+  PerformanceAlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-performance-alerts"
+      DisplayName: "Performance Basketball Platform Alerts"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-performance-alerts"
+        - Key: AlertType
+          Value: performance
+
+  BusinessAlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-business-alerts"
+      DisplayName: "Business KPI Basketball Platform Alerts"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-business-alerts"
+        - Key: AlertType
+          Value: business
+
+  # Email Subscriptions
+  CriticalAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref CriticalAlertsSnsTopic
+      Endpoint: !Ref AlertingEmail
+
+  PerformanceAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref PerformanceAlertsSnsTopic
+      Endpoint: !Ref AlertingEmail
+
+  # Lambda Function for Slack Notifications
+  SlackNotificationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${Environment}-slack-notifications"
+      Runtime: python3.9
+      Handler: index.lambda_handler
+      Role: !GetAtt SlackLambdaRole.Arn
+      Environment:
+        Variables:
+          SLACK_WEBHOOK_URL: !Ref SlackWebhookUrl
+      Code:
+        ZipFile: |
+          import json
+          import urllib3
+          import os
+          from datetime import datetime
+          
+          def lambda_handler(event, context):
+              webhook_url = os.environ['SLACK_WEBHOOK_URL']
+              
+              for record in event['Records']:
+                  sns_message = json.loads(record['Sns']['Message'])
+                  
+                  # Parse CloudWatch alarm message
+                  alarm_name = sns_message.get('AlarmName', 'Unknown Alarm')
+                  new_state = sns_message.get('NewStateValue', 'Unknown')
+                  reason = sns_message.get('NewStateReason', 'No reason provided')
+                  timestamp = sns_message.get('StateChangeTime', datetime.now().isoformat())
+                  
+                  # Determine color based on state
+                  color = 'danger' if new_state == 'ALARM' else 'good'
+                  
+                  # Format Slack message
+                  slack_message = {
+                      'attachments': [{
+                          'color': color,
+                          'title': f'Basketball Platform Alert: {alarm_name}',
+                          'text': f'State: {new_state}\nReason: {reason}',
+                          'timestamp': timestamp,
+                          'fields': [
+                              {'title': 'Environment', 'value': os.environ.get('ENVIRONMENT', 'production'), 'short': True},
+                              {'title': 'Alert Type', 'value': 'Basketball Platform', 'short': True}
+                          ]
+                      }]
+                  }
+                  
+                  # Send to Slack
+                  http = urllib3.PoolManager()
+                  response = http.request('POST', webhook_url,
+                                        body=json.dumps(slack_message),
+                                        headers={'Content-Type': 'application/json'})
+                  
+              return {'statusCode': 200}
+      Timeout: 30
+
+  SlackLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # SNS Subscription for Slack notifications
+  SlackNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn: !Ref CriticalAlertsSnsTopic
+      Endpoint: !GetAtt SlackNotificationLambda.Arn
+
+  SlackLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SlackNotificationLambda
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # APPLICATION PERFORMANCE ALARMS
+  # ============================================================================
+
+  # High CPU Utilization - Web Tier
+  WebTierHighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-web-tier-high-cpu"
+      AlarmDescription: "Web tier CPU utilization is consistently high"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref PerformanceAlertsSnsTopic
+      OKActions:
+        - !Ref PerformanceAlertsSnsTopic
+
+  # High CPU Utilization - API Tier
+  APITierHighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-api-tier-high-cpu"
+      AlarmDescription: "API tier CPU utilization is consistently high"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 120
+      EvaluationPeriods: 2
+      Threshold: 75
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # High Memory Utilization
+  HighMemoryUtilizationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-high-memory-utilization"
+      AlarmDescription: "Memory utilization is critically high"
+      MetricName: MemoryUtilization
+      Namespace: CWAgent
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 90
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # DATABASE PERFORMANCE ALARMS
+  # ============================================================================
+
+  DatabaseHighConnectionsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-database-high-connections"
+      AlarmDescription: "Database connection count is approaching limits"
+      MetricName: DatabaseConnections
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 400  # 80% of 500 max connections
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  DatabaseHighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-database-high-cpu"
+      AlarmDescription: "Database CPU utilization is high"
+      MetricName: CPUUtilization
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref PerformanceAlertsSnsTopic
+
+  DatabaseReadLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-database-read-latency"
+      AlarmDescription: "Database read latency is too high"
+      MetricName: ReadLatency
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 0.2  # 200ms
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref PerformanceAlertsSnsTopic
+
+  DatabaseWriteLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-database-write-latency"
+      AlarmDescription: "Database write latency is too high"
+      MetricName: WriteLatency
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 0.5  # 500ms
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # LOAD BALANCER AND TRAFFIC ALARMS
+  # ============================================================================
+
+  HighHTTPErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-high-http-error-rate"
+      AlarmDescription: "High rate of HTTP errors detected"
+      MetricName: HTTPCode_Target_5XX_Count
+      Namespace: AWS/ApplicationELB
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 50  # 50 errors in 5 minutes
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  HighTargetResponseTimeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-high-target-response-time"
+      AlarmDescription: "Target response time is too high"
+      MetricName: TargetResponseTime
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 2.0  # 2 seconds
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref PerformanceAlertsSnsTopic
+
+  UnhealthyHostsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-unhealthy-hosts"
+      AlarmDescription: "Unhealthy hosts detected"
+      MetricName: UnHealthyHostCount
+      Namespace: AWS/ApplicationELB
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # BUSINESS METRICS ALARMS
+  # ============================================================================
+
+  # Tournament Day Traffic Surge
+  TournamentDayTrafficSurgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-tournament-day-traffic-surge"
+      AlarmDescription: "Tournament day traffic surge detected"
+      MetricName: RequestCount
+      Namespace: AWS/ApplicationELB
+      Statistic: Sum
+      Period: 3600  # 1 hour
+      EvaluationPeriods: 1
+      Threshold: 100000  # 100k requests per hour
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref BusinessAlertsSnsTopic
+
+  # Live Score Updates Performance
+  LiveScoreUpdatesLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-live-score-updates-latency"
+      AlarmDescription: "Live score updates are experiencing high latency"
+      MetricName: LiveScoreUpdateLatency
+      Namespace: Basketball/Application
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 1000  # 1 second
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # Registration Failures
+  RegistrationFailureRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-registration-failure-rate"
+      AlarmDescription: "High rate of registration failures"
+      MetricName: RegistrationFailures
+      Namespace: Basketball/Application
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 50  # 50 failures per hour
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref BusinessAlertsSnsTopic
+
+  # Payment Processing Issues
+  PaymentProcessingFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-payment-processing-failures"
+      AlarmDescription: "Payment processing failure rate is high"
+      MetricName: PaymentFailures
+      Namespace: Basketball/Application
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10  # 10 payment failures in 5 minutes
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # SECURITY ALARMS
+  # ============================================================================
+
+  HighSecurityViolationsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-high-security-violations"
+      AlarmDescription: "High number of security violations detected"
+      MetricName: SecurityViolations
+      Namespace: Basketball/Security
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100  # 100 violations in 5 minutes
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  COPPAViolationAttemptAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-coppa-violation-attempts"
+      AlarmDescription: "COPPA violation attempts detected"
+      MetricName: COPPAViolationAttempts
+      Namespace: Basketball/Security
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10  # Any COPPA violations are serious
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CriticalAlertsSnsTopic
+
+  # ============================================================================
+  # CUSTOM DASHBOARDS
+  # ============================================================================
+
+  BasketballPlatformDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${Environment}-basketball-platform-overview"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/ApplicationELB", "RequestCount"],
+                  ["AWS/ApplicationELB", "TargetResponseTime"],
+                  ["AWS/ApplicationELB", "HTTPCode_Target_2XX_Count"],
+                  ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Load Balancer Metrics"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/EC2", "CPUUtilization"],
+                  ["CWAgent", "MemoryUtilization"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Instance Performance"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/RDS", "DatabaseConnections"],
+                  ["AWS/RDS", "CPUUtilization"],
+                  ["AWS/RDS", "ReadLatency"],
+                  ["AWS/RDS", "WriteLatency"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Database Performance"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["Basketball/Application", "ActiveTournaments"],
+                  ["Basketball/Application", "LiveGames"],
+                  ["Basketball/Application", "ConcurrentUsers"],
+                  ["Basketball/Application", "RegistrationsPerHour"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Business Metrics"
+              }
+            }
+          ]
+        }
+
+  TournamentDayDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${Environment}-tournament-day-monitoring"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 8,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["Basketball/Application", "LiveScoreUpdatesPerSecond"],
+                  ["Basketball/Application", "BracketGenerationDuration"],
+                  ["Basketball/Application", "GameStartsPerHour"]
+                ],
+                "period": 60,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Live Tournament Metrics"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 8,
+              "y": 0,
+              "width": 8,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/ApplicationELB", "RequestCount"],
+                  ["Basketball/Application", "WebSocketConnections"],
+                  ["Basketball/Application", "MobileAppSessions"]
+                ],
+                "period": 60,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Tournament Traffic"
+              }
+            },
+            {
+              "type": "log",
+              "x": 16,
+              "y": 0,
+              "width": 8,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/lambda/tournament-processor'\n| fields @timestamp, @message\n| filter @message like /ERROR/\n| sort @timestamp desc\n| limit 20",
+                "region": "${AWS::Region}",
+                "title": "Tournament Errors"
+              }
+            }
+          ]
+        }
+
+  # ============================================================================
+  # CUSTOM METRICS AND LOG GROUPS
+  # ============================================================================
+
+  ApplicationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/basketball-platform/${Environment}/application"
+      RetentionInDays: 14
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-app-logs"
+
+  SecurityLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/basketball-platform/${Environment}/security"
+      RetentionInDays: 90  # Longer retention for security logs
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-security-logs"
+
+  BusinessMetricsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/basketball-platform/${Environment}/business"
+      RetentionInDays: 30
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-business-logs"
+
+  # Log Metric Filters
+  ErrorCountMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ApplicationLogGroup
+      FilterPattern: "ERROR"
+      MetricTransformations:
+        - MetricNamespace: Basketball/Application
+          MetricName: ErrorCount
+          MetricValue: "1"
+          DefaultValue: 0
+
+  RegistrationSuccessMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ApplicationLogGroup
+      FilterPattern: "[timestamp, request_id, level=\"INFO\", message=\"REGISTRATION_SUCCESS\", ...]"
+      MetricTransformations:
+        - MetricNamespace: Basketball/Application
+          MetricName: RegistrationSuccesses
+          MetricValue: "1"
+          DefaultValue: 0
+
+  PaymentFailureMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ApplicationLogGroup
+      FilterPattern: "[timestamp, request_id, level=\"ERROR\", message=\"PAYMENT_FAILED\", ...]"
+      MetricTransformations:
+        - MetricNamespace: Basketball/Application
+          MetricName: PaymentFailures
+          MetricValue: "1"
+          DefaultValue: 0
+
+  SecurityViolationMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SecurityLogGroup
+      FilterPattern: "SECURITY_VIOLATION"
+      MetricTransformations:
+        - MetricNamespace: Basketball/Security
+          MetricName: SecurityViolations
+          MetricValue: "1"
+          DefaultValue: 0
+
+Outputs:
+  CriticalAlertsTopicArn:
+    Description: "Critical alerts SNS topic ARN"
+    Value: !Ref CriticalAlertsSnsTopic
+    Export:
+      Name: !Sub "${Environment}-critical-alerts-topic"
+
+  PerformanceAlertsTopicArn:
+    Description: "Performance alerts SNS topic ARN"
+    Value: !Ref PerformanceAlertsSnsTopic
+    Export:
+      Name: !Sub "${Environment}-performance-alerts-topic"
+
+  BusinessAlertsTopicArn:
+    Description: "Business alerts SNS topic ARN"
+    Value: !Ref BusinessAlertsSnsTopic
+    Export:
+      Name: !Sub "${Environment}-business-alerts-topic"
+
+  MainDashboardUrl:
+    Description: "URL to the main basketball platform dashboard"
+    Value: !Sub "https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${Environment}-basketball-platform-overview"
+
+  TournamentDashboardUrl:
+    Description: "URL to the tournament day monitoring dashboard"
+    Value: !Sub "https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${Environment}-tournament-day-monitoring"

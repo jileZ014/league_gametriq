@@ -1,0 +1,542 @@
+# AWS WAF and Security Configuration for Basketball League Platform
+# Designed to protect against common web attacks and handle tournament day traffic
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'WAF and security configuration for Legacy Youth Sports basketball platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [staging, production]
+  
+  CloudFrontDistributionId:
+    Type: String
+    Description: CloudFront Distribution ID to associate with WAF
+    
+  ApplicationLoadBalancerArn:
+    Type: String
+    Description: Application Load Balancer ARN to associate with WAF
+
+Resources:
+  # Main WAF Web ACL
+  BasketballPlatformWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub "${Environment}-legacy-youth-sports-waf"
+      Scope: CLOUDFRONT  # Use REGIONAL for ALB
+      DefaultAction:
+        Allow: {}
+      
+      Rules:
+        # Rule 1: Rate limiting by IP - General protection
+        - Name: GeneralRateLimitRule
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 2000  # 2000 requests per 5 minutes
+              AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: GeneralRateLimit
+
+        # Rule 2: Tournament day enhanced rate limiting
+        - Name: TournamentDayRateLimitRule
+          Priority: 2
+          Statement:
+            RateBasedStatement:
+              Limit: 5000  # Higher limit for tournament days
+              AggregateKeyType: IP
+              ScopeDownStatement:
+                OrStatement:
+                  Statements:
+                    - ByteMatchStatement:
+                        SearchString: "/api/tournaments"
+                        FieldToMatch:
+                          UriPath: {}
+                        TextTransformations:
+                          - Priority: 0
+                            Type: URL_DECODE
+                        PositionalConstraint: STARTS_WITH
+                    - ByteMatchStatement:
+                        SearchString: "/api/games/live"
+                        FieldToMatch:
+                          UriPath: {}
+                        TextTransformations:
+                          - Priority: 0
+                            Type: URL_DECODE
+                        PositionalConstraint: STARTS_WITH
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: TournamentDayRateLimit
+
+        # Rule 3: AWS Managed SQL Injection Protection
+        - Name: SQLInjectionRule
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesSQLiRuleSet
+              ExcludedRules: []
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: SQLInjectionRule
+
+        # Rule 4: AWS Managed XSS Protection
+        - Name: XSSRule
+          Priority: 4
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              ExcludedRules:
+                # Exclude rules that might interfere with basketball data
+                - Name: SizeRestrictions_BODY
+                - Name: GenericRFI_BODY
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWouchMetricsEnabled: true
+            MetricName: XSSRule
+
+        # Rule 5: Known Bad IPs (IP Reputation)
+        - Name: AWSManagedRulesAmazonIpReputationList
+          Priority: 5
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: IPReputationRule
+
+        # Rule 6: Anonymous IP Protection
+        - Name: AWSManagedRulesAnonymousIpList
+          Priority: 6
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+              ExcludedRules:
+                # Allow legitimate VPNs for traveling teams
+                - Name: AnonymousIPList
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AnonymousIPRule
+
+        # Rule 7: Bot Control for scraping protection
+        - Name: AWSManagedRulesBotControlRuleSet
+          Priority: 7
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesBotControlRuleSet
+              ManagedRuleGroupConfigs:
+                - AWSManagedRulesBotControlRuleSet:
+                    InspectionLevel: COMMON
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BotControlRule
+
+        # Rule 8: Geographic blocking (if needed)
+        - Name: GeoBlockRule
+          Priority: 8
+          Statement:
+            GeoMatchStatement:
+              CountryCodes:
+                - CN  # Block China
+                - RU  # Block Russia
+                - KP  # Block North Korea
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: GeoBlockRule
+
+        # Rule 9: API specific protection
+        - Name: APIProtectionRule
+          Priority: 9
+          Statement:
+            AndStatement:
+              Statements:
+                - ByteMatchStatement:
+                    SearchString: "/api/"
+                    FieldToMatch:
+                      UriPath: {}
+                    TextTransformations:
+                      - Priority: 0
+                        Type: LOWERCASE
+                    PositionalConstraint: STARTS_WITH
+                - RateBasedStatement:
+                    Limit: 1000  # API specific rate limit
+                    AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: APIProtectionRule
+
+        # Rule 10: Youth data protection (COPPA compliance)
+        - Name: YouthDataProtectionRule
+          Priority: 10
+          Statement:
+            AndStatement:
+              Statements:
+                - OrStatement:
+                    Statements:
+                      - ByteMatchStatement:
+                          SearchString: "/api/players"
+                          FieldToMatch:
+                            UriPath: {}
+                          TextTransformations:
+                            - Priority: 0
+                              Type: LOWERCASE
+                          PositionalConstraint: CONTAINS
+                      - ByteMatchStatement:
+                          SearchString: "/register/player"
+                          FieldToMatch:
+                            UriPath: {}
+                          TextTransformations:
+                            - Priority: 0
+                              Type: LOWERCASE
+                          PositionalConstraint: CONTAINS
+                - RateBasedStatement:
+                    Limit: 100  # Stricter limits for youth data endpoints
+                    AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: YouthDataProtectionRule
+
+        # Rule 11: Large request body protection
+        - Name: LargeRequestBodyRule
+          Priority: 11
+          Statement:
+            SizeConstraintStatement:
+              FieldToMatch:
+                Body: {}
+              ComparisonOperator: GT
+              Size: 8192  # 8KB limit for most requests
+              TextTransformations:
+                - Priority: 0
+                  Type: NONE
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: LargeRequestBodyRule
+
+        # Rule 12: Custom basketball-specific attack patterns
+        - Name: BasketballSpecificAttackRule
+          Priority: 12
+          Statement:
+            OrStatement:
+              Statements:
+                # Protect against score manipulation attempts
+                - ByteMatchStatement:
+                    SearchString: "union select"
+                    FieldToMatch:
+                      AllQueryArguments: {}
+                    TextTransformations:
+                      - Priority: 0
+                        Type: LOWERCASE
+                      - Priority: 1
+                        Type: URL_DECODE
+                    PositionalConstraint: CONTAINS
+                # Protect against tournament bracket tampering
+                - RegexMatchStatement:
+                    RegexString: "(\bDROP\b|\bDELETE\b|\bUPDATE\b).*\b(tournaments|brackets|games)\b"
+                    FieldToMatch:
+                      Body: {}
+                    TextTransformations:
+                      - Priority: 0
+                        Type: LOWERCASE
+                      - Priority: 1
+                        Type: URL_DECODE
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BasketballSpecificAttackRule
+
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${Environment}BasketballPlatformWebACL"
+
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-basketball-waf"
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Regional WAF for ALB (if needed)
+  RegionalWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub "${Environment}-regional-basketball-waf"
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      
+      Rules:
+        # Similar rules as above but for regional scope
+        - Name: RegionalRateLimitRule
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 2000
+              AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RegionalRateLimit
+
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub "${Environment}RegionalBasketballWebACL"
+
+  # IP Set for Whitelisting (tournament officials, admin users)
+  AdminIPSet:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub "${Environment}-admin-ip-set"
+      Scope: CLOUDFRONT
+      IPAddressVersion: IPV4
+      Addresses:
+        - "192.0.2.0/24"    # Example admin office
+        - "198.51.100.0/24" # Example tournament venue
+      Description: "IP addresses for administrative users and tournament officials"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-admin-ips"
+
+  # IP Set for Known Bad Actors
+  BlockedIPSet:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub "${Environment}-blocked-ip-set"
+      Scope: CLOUDFRONT
+      IPAddressVersion: IPV4
+      Addresses:
+        - "203.0.113.0/24"  # Example blocked range
+      Description: "IP addresses that are specifically blocked"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-blocked-ips"
+
+  # Web ACL Association with CloudFront
+  CloudFrontWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistributionId}"
+      WebACLArn: !GetAtt BasketballPlatformWebACL.Arn
+
+  # Web ACL Association with ALB (if using regional WAF)
+  # ALBWebACLAssociation:
+  #   Type: AWS::WAFv2::WebACLAssociation
+  #   Properties:
+  #     ResourceArn: !Ref ApplicationLoadBalancerArn
+  #     WebACLArn: !GetAtt RegionalWebACL.Arn
+
+  # CloudWatch Log Group for WAF
+  WAFLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/wafv2/${Environment}-basketball-waf"
+      RetentionInDays: 30
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-waf-logs"
+
+  # WAF Logging Configuration
+  WAFLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt BasketballPlatformWebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt WAFLogGroup.Arn
+      RedactedFields:
+        - SingleHeader:
+            Name: authorization
+        - SingleHeader:
+            Name: cookie
+        - UriPath: {}
+      LoggingFilter:
+        DefaultBehavior: KEEP
+        Filters:
+          - Behavior: KEEP
+            Conditions:
+              - ActionCondition:
+                  Action: BLOCK
+            Requirement: MEETS_ANY
+
+  # CloudWatch Alarms for WAF
+  HighBlockedRequestsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-waf-high-blocked-requests"
+      AlarmDescription: "High number of blocked requests detected"
+      MetricName: BlockedRequests
+      Namespace: AWS/WAFV2
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 1000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${Environment}-legacy-youth-sports-waf"
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: ALL
+      AlarmActions:
+        - !Ref SecurityAlertsSnsTopic
+
+  SQLInjectionAttemptsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-waf-sql-injection-attempts"
+      AlarmDescription: "SQL injection attempts detected"
+      MetricName: BlockedRequests
+      Namespace: AWS/WAFV2
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${Environment}-legacy-youth-sports-waf"
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: SQLInjectionRule
+      AlarmActions:
+        - !Ref SecurityAlertsSnsTopic
+
+  TournamentDayRateLimitAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-waf-tournament-rate-limit"
+      AlarmDescription: "Tournament endpoints experiencing high rate limiting"
+      MetricName: BlockedRequests
+      Namespace: AWS/WAFV2
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 500
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: WebACL
+          Value: !Sub "${Environment}-legacy-youth-sports-waf"
+        - Name: Region
+          Value: CloudFront
+        - Name: Rule
+          Value: TournamentDayRateLimitRule
+      AlarmActions:
+        - !Ref SecurityAlertsSnsTopic
+
+  # SNS Topic for Security Alerts
+  SecurityAlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-security-alerts"
+      DisplayName: "Basketball Platform Security Alerts"
+      KmsMasterKeyId: alias/aws/sns
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-security-alerts"
+
+  # Security notification subscription (email)
+  SecurityAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref SecurityAlertsSnsTopic
+      Endpoint: security@legacyyouthsports.com  # Replace with actual email
+
+  # AWS Config rule for WAF compliance
+  WAFConfigRule:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: !Sub "${Environment}-waf-enabled"
+      Description: "Checks whether WAF is enabled on CloudFront distributions"
+      Source:
+        Owner: AWS
+        SourceIdentifier: CLOUDFRONT_DISTRIBUTION_CONFIGURED_WITH_WAF
+
+  # Security Hub custom insight
+  SecurityHubCustomInsight:
+    Type: AWS::SecurityHub::Insight
+    Properties:
+      Name: !Sub "${Environment}-basketball-waf-findings"
+      Description: "WAF-related security findings for basketball platform"
+      GroupByAttribute: ProductName
+      Filters:
+        ProductName:
+          - Value: WAF
+            Comparison: EQUALS
+        RecordState:
+          - Value: ACTIVE
+            Comparison: EQUALS
+
+Outputs:
+  WebACLArn:
+    Description: "WAF Web ACL ARN"
+    Value: !GetAtt BasketballPlatformWebACL.Arn
+    Export:
+      Name: !Sub "${Environment}-waf-webacl-arn"
+
+  WebACLId:
+    Description: "WAF Web ACL ID"
+    Value: !Ref BasketballPlatformWebACL
+    Export:
+      Name: !Sub "${Environment}-waf-webacl-id"
+
+  RegionalWebACLArn:
+    Description: "Regional WAF Web ACL ARN"
+    Value: !GetAtt RegionalWebACL.Arn
+    Export:
+      Name: !Sub "${Environment}-regional-waf-webacl-arn"
+
+  SecurityAlertsTopicArn:
+    Description: "Security alerts SNS topic ARN"
+    Value: !Ref SecurityAlertsSnsTopic
+    Export:
+      Name: !Sub "${Environment}-security-alerts-topic-arn"
+
+  WAFLogGroupName:
+    Description: "WAF CloudWatch log group name"
+    Value: !Ref WAFLogGroup
+    Export:
+      Name: !Sub "${Environment}-waf-log-group-name"

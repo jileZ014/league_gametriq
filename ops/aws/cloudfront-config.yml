@@ -1,0 +1,334 @@
+# CloudFront Distribution Configuration for Basketball League Platform
+# Optimized for tournament day traffic with 1000+ concurrent users
+
+distributions:
+  # Static Assets CDN Distribution
+  static_assets:
+    comment: "Static assets CDN for Legacy Youth Sports Platform"
+    enabled: true
+    price_class: "PriceClass_All" # Global distribution for best performance
+    
+    origins:
+      - id: "s3-legacy-youth-sports-assets"
+        domain_name: "legacy-youth-sports-assets.s3.us-west-2.amazonaws.com"
+        s3_origin_config:
+          origin_access_identity: "legacy-youth-sports-oai"
+        connection_attempts: 3
+        connection_timeout: 10
+        origin_shield:
+          enabled: true
+          origin_shield_region: "us-west-2"
+    
+    default_cache_behavior:
+      target_origin_id: "s3-legacy-youth-sports-assets"
+      viewer_protocol_policy: "redirect-to-https"
+      allowed_methods:
+        - GET
+        - HEAD
+        - OPTIONS
+      cached_methods:
+        - GET
+        - HEAD
+      compress: true
+      cache_policy_id: "optimized_caching"
+      origin_request_policy_id: "cors_s3_origin"
+      response_headers_policy_id: "security_headers"
+      
+    ordered_cache_behaviors:
+      # Images - Long TTL
+      - path_pattern: "/images/*"
+        target_origin_id: "s3-legacy-youth-sports-assets"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "optimized_caching"
+        ttl:
+          default: 31536000  # 1 year
+          max: 31536000
+        headers_to_forward:
+          - "CloudFront-Is-Mobile-Viewer"
+          - "CloudFront-Is-Tablet-Viewer"
+      
+      # CSS/JS Assets - Medium TTL with versioning
+      - path_pattern: "/css/*"
+        target_origin_id: "s3-legacy-youth-sports-assets"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "optimized_caching"
+        ttl:
+          default: 86400  # 1 day
+          max: 31536000   # 1 year for versioned assets
+      
+      - path_pattern: "/js/*"
+        target_origin_id: "s3-legacy-youth-sports-assets"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "optimized_caching"
+        ttl:
+          default: 86400  # 1 day
+          max: 31536000   # 1 year for versioned assets
+        
+      # Fonts - Very long TTL
+      - path_pattern: "/fonts/*"
+        target_origin_id: "s3-legacy-youth-sports-assets"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: false  # Pre-compressed
+        cache_policy_id: "optimized_caching"
+        ttl:
+          default: 31536000  # 1 year
+          max: 31536000
+
+  # API Caching Distribution
+  api_cache:
+    comment: "API caching for performance-critical endpoints"
+    enabled: true
+    price_class: "PriceClass_100" # US, Canada, Europe for API caching
+    
+    origins:
+      - id: "api-gateway-origin"
+        domain_name: "api.legacyyouthsports.com"
+        custom_origin_config:
+          http_port: 80
+          https_port: 443
+          origin_protocol_policy: "https-only"
+          origin_ssl_protocols:
+            - "TLSv1.2"
+            - "TLSv1.3"
+        connection_attempts: 3
+        connection_timeout: 10
+        origin_shield:
+          enabled: true
+          origin_shield_region: "us-west-2"
+    
+    default_cache_behavior:
+      target_origin_id: "api-gateway-origin"
+      viewer_protocol_policy: "redirect-to-https"
+      allowed_methods:
+        - GET
+        - HEAD
+        - OPTIONS
+        - PUT
+        - POST
+        - PATCH
+        - DELETE
+      cached_methods:
+        - GET
+        - HEAD
+      compress: true
+      cache_policy_id: "api_caching_disabled"
+      
+    ordered_cache_behaviors:
+      # Standings - Cacheable for 5 minutes
+      - path_pattern: "/api/standings/*"
+        target_origin_id: "api-gateway-origin"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "api_caching"
+        ttl:
+          default: 300  # 5 minutes
+          max: 900      # 15 minutes
+        headers_to_forward:
+          - "Authorization"
+          - "X-Tenant-ID"
+      
+      # Schedules - Medium cache
+      - path_pattern: "/api/schedules/*"
+        target_origin_id: "api-gateway-origin"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "api_caching"
+        ttl:
+          default: 600  # 10 minutes
+          max: 1800     # 30 minutes
+        headers_to_forward:
+          - "Authorization"
+          - "X-Tenant-ID"
+      
+      # Team/Player stats - Short cache
+      - path_pattern: "/api/stats/*"
+        target_origin_id: "api-gateway-origin"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "api_caching"
+        ttl:
+          default: 300  # 5 minutes
+          max: 600      # 10 minutes
+        headers_to_forward:
+          - "Authorization"
+          - "X-Tenant-ID"
+      
+      # Live games - No cache
+      - path_pattern: "/api/games/live/*"
+        target_origin_id: "api-gateway-origin"
+        viewer_protocol_policy: "redirect-to-https"
+        compress: true
+        cache_policy_id: "no_cache"
+        headers_to_forward:
+          - "Authorization"
+          - "X-Tenant-ID"
+          - "X-Real-IP"
+          - "User-Agent"
+
+# Cache Policies
+cache_policies:
+  optimized_caching:
+    name: "OptimizedCachingPolicy"
+    default_ttl: 86400
+    max_ttl: 31536000
+    min_ttl: 1
+    parameters_in_cache_key_and_forwarded_to_origin:
+      enable_accept_encoding_gzip: true
+      enable_accept_encoding_brotli: true
+      query_strings_config:
+        query_string_behavior: "none"
+      headers_config:
+        header_behavior: "whitelist"
+        headers:
+          - "CloudFront-Is-Mobile-Viewer"
+          - "CloudFront-Is-Tablet-Viewer"
+      cookies_config:
+        cookie_behavior: "none"
+        
+  api_caching:
+    name: "APICachingPolicy" 
+    default_ttl: 300
+    max_ttl: 1800
+    min_ttl: 0
+    parameters_in_cache_key_and_forwarded_to_origin:
+      enable_accept_encoding_gzip: true
+      enable_accept_encoding_brotli: true
+      query_strings_config:
+        query_string_behavior: "all"
+      headers_config:
+        header_behavior: "whitelist"
+        headers:
+          - "Authorization"
+          - "X-Tenant-ID"
+      cookies_config:
+        cookie_behavior: "none"
+        
+  no_cache:
+    name: "NoCachePolicy"
+    default_ttl: 0
+    max_ttl: 0
+    min_ttl: 0
+    parameters_in_cache_key_and_forwarded_to_origin:
+      enable_accept_encoding_gzip: true
+      enable_accept_encoding_brotli: true
+      query_strings_config:
+        query_string_behavior: "all"
+      headers_config:
+        header_behavior: "whitelist"
+        headers:
+          - "Authorization"
+          - "X-Tenant-ID"
+          - "X-Real-IP"
+          - "User-Agent"
+          - "Accept"
+          - "Accept-Language"
+      cookies_config:
+        cookie_behavior: "all"
+
+# Origin Request Policies  
+origin_request_policies:
+  cors_s3_origin:
+    name: "CORS-S3Origin"
+    query_strings_config:
+      query_string_behavior: "none"
+    headers_config:
+      header_behavior: "whitelist"
+      headers:
+        - "Access-Control-Allow-Origin"
+        - "Access-Control-Allow-Methods"
+        - "Access-Control-Allow-Headers"
+    cookies_config:
+      cookie_behavior: "none"
+
+# Response Headers Policies
+response_headers_policies:
+  security_headers:
+    name: "SecurityHeaders"
+    security_headers_config:
+      strict_transport_security:
+        access_control_max_age_sec: 31536000
+        include_subdomains: true
+        override: false
+      content_type_options:
+        override: false
+      frame_options:
+        frame_option: "DENY"
+        override: false
+      referrer_policy:
+        referrer_policy: "strict-origin-when-cross-origin"
+        override: false
+    custom_headers_config:
+      items:
+        - header: "Cache-Control"
+          value: "public, max-age=31536000, immutable"
+          override: false
+        - header: "X-Basketball-CDN"
+          value: "optimized"
+          override: false
+
+# WAF Integration
+web_acl:
+  name: "basketball-league-waf"
+  scope: "CLOUDFRONT"
+  rules:
+    - name: "AWSManagedRulesCommonRuleSet"
+      priority: 1
+      override_action: "none"
+      managed_rule_group_statement:
+        vendor_name: "AWS"
+        name: "AWSManagedRulesCommonRuleSet"
+        
+    - name: "RateLimitRule"
+      priority: 2
+      action: "block"
+      rate_based_statement:
+        limit: 2000  # requests per 5-minute window
+        aggregate_key_type: "IP"
+        
+    - name: "GeoBlockRule"
+      priority: 3
+      action: "block"
+      geo_match_statement:
+        country_codes:
+          - "CN"  # Block known high-risk countries
+          - "RU"
+          - "KP"
+
+# Performance Monitoring
+monitoring:
+  real_user_monitoring:
+    enabled: true
+    sampling_rate: 0.1  # 10% sampling for RUM data
+    
+  cloudwatch_metrics:
+    enabled: true
+    detailed_metrics: true
+    
+  custom_metrics:
+    - name: "tournament_day_traffic"
+      namespace: "LegacyYouthSports/Performance"
+      dimensions:
+        - name: "Distribution"
+          value: "static_assets"
+    
+    - name: "api_cache_hit_rate"
+      namespace: "LegacyYouthSports/Performance" 
+      dimensions:
+        - name: "Distribution"
+          value: "api_cache"
+
+# Cost Optimization
+cost_optimization:
+  origin_shield_regions:
+    - "us-west-2"  # Primary region for Phoenix traffic
+    
+  price_classes:
+    static_assets: "PriceClass_All"    # Global for best UX
+    api_cache: "PriceClass_100"        # US/EU for API performance
+    
+  log_sampling:
+    enabled: true
+    sampling_rate: 0.01  # 1% for cost control

@@ -1,0 +1,531 @@
+# RDS Aurora PostgreSQL Configuration for Basketball League Platform
+# Designed for high availability and read scalability
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL cluster with read replicas for Legacy Youth Sports'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [staging, production]
+  
+  MasterUsername:
+    Type: String
+    Default: postgres
+    NoEcho: true
+    
+  MasterPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+    ConstraintDescription: Must be at least 12 characters long
+
+  DatabaseName:
+    Type: String
+    Default: basketball_league
+    
+  BackupRetentionPeriod:
+    Type: Number
+    Default: 30
+    MinValue: 7
+    MaxValue: 35
+
+Resources:
+  # Aurora Subnet Group
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Sub "${Environment}-aurora-subnet-group"
+      DBSubnetGroupDescription: Subnet group for Aurora PostgreSQL cluster
+      SubnetIds:
+        - !Ref DatabaseSubnet1
+        - !Ref DatabaseSubnet2
+        - !Ref DatabaseSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-subnet-group"
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Aurora Cluster Parameter Group
+  AuroraClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      DBClusterParameterGroupName: !Sub "${Environment}-aurora-cluster-params"
+      Description: Aurora PostgreSQL cluster parameter group optimized for basketball league workload
+      Family: aurora-postgresql15
+      Parameters:
+        # Connection and performance settings
+        max_connections: '500'
+        shared_preload_libraries: 'pg_stat_statements,pg_hint_plan'
+        log_statement: 'mod'  # Log data modification statements
+        log_min_duration_statement: '1000'  # Log queries taking > 1 second
+        
+        # Memory and cache settings optimized for read-heavy workload
+        shared_buffers: '{DBInstanceClassMemory/4}'  # 25% of RAM
+        effective_cache_size: '{DBInstanceClassMemory*3/4}'  # 75% of RAM
+        work_mem: '64MB'
+        maintenance_work_mem: '512MB'
+        
+        # Checkpoint and WAL settings for write performance
+        checkpoint_completion_target: '0.9'
+        wal_buffers: '16MB'
+        
+        # Query optimization for basketball analytics
+        random_page_cost: '1.1'  # SSD storage
+        effective_io_concurrency: '200'  # SSD concurrency
+        
+        # Logging for audit and performance monitoring
+        log_checkpoints: 'on'
+        log_connections: 'on'
+        log_disconnections: 'on'
+        log_lock_waits: 'on'
+        
+        # Basketball-specific optimizations
+        default_statistics_target: '100'  # Better stats for game analytics
+        
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-cluster-params"
+
+  # Aurora Instance Parameter Group
+  AuroraInstanceParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      DBParameterGroupName: !Sub "${Environment}-aurora-instance-params"
+      Description: Aurora PostgreSQL instance parameter group
+      Family: aurora-postgresql15
+      Parameters:
+        # Basketball workload specific settings
+        pg_stat_statements.track: 'all'
+        pg_stat_statements.max: '10000'
+        
+        # Connection pooling preparation
+        max_prepared_transactions: '100'
+        
+        # Timezone for Phoenix market
+        timezone: 'America/Phoenix'
+        
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-instance-params"
+
+  # Aurora PostgreSQL Cluster
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub "${Environment}-basketball-aurora-cluster"
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      DatabaseName: !Ref DatabaseName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterPassword
+      
+      # High Availability Configuration
+      BackupRetentionPeriod: !Ref BackupRetentionPeriod
+      PreferredBackupWindow: '03:00-04:00'  # 3-4 AM MST (low usage)
+      PreferredMaintenanceWindow: 'sun:04:00-sun:05:00'  # Sunday 4-5 AM MST
+      
+      # Network and Security
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DatabaseSecurityGroup
+      
+      # Performance and Parameters
+      DBClusterParameterGroupName: !Ref AuroraClusterParameterGroup
+      
+      # Encryption
+      StorageEncrypted: true
+      KmsKeyId: !Ref DatabaseKMSKey
+      
+      # Deletion protection for production
+      DeletionProtection: !If [IsProduction, true, false]
+      
+      # Enhanced monitoring and logging
+      EnableCloudwatchLogsExports:
+        - postgresql
+      
+      # Point-in-time recovery
+      BacktrackWindow: 72  # 72 hours for production
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-basketball-aurora-cluster"
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Workload
+          Value: basketball-league
+
+  # Primary Writer Instance
+  AuroraPrimaryInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${Environment}-aurora-writer"
+      DBInstanceClass: !If [IsProduction, db.r6g.2xlarge, db.r6g.xlarge]
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraInstanceParameterGroup
+      
+      # Monitoring
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSEnhancedMonitoringRole.Arn
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-writer"
+        - Key: Role
+          Value: primary-writer
+
+  # Read Replica 1 - Phoenix AZ-A
+  AuroraReadReplica1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${Environment}-aurora-reader-1"
+      DBInstanceClass: !If [IsProduction, db.r6g.xlarge, db.r6g.large]
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraInstanceParameterGroup
+      AvailabilityZone: !Sub "${AWS::Region}a"
+      
+      # Monitoring
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSEnhancedMonitoringRole.Arn
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-reader-1"
+        - Key: Role
+          Value: read-replica
+        - Key: AZ
+          Value: !Sub "${AWS::Region}a"
+
+  # Read Replica 2 - Phoenix AZ-B  
+  AuroraReadReplica2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${Environment}-aurora-reader-2"
+      DBInstanceClass: !If [IsProduction, db.r6g.xlarge, db.r6g.large]
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraInstanceParameterGroup
+      AvailabilityZone: !Sub "${AWS::Region}b"
+      
+      # Monitoring
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSEnhancedMonitoringRole.Arn
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-reader-2"
+        - Key: Role
+          Value: read-replica
+        - Key: AZ
+          Value: !Sub "${AWS::Region}b"
+
+  # Read Replica 3 - Phoenix AZ-C
+  AuroraReadReplica3:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${Environment}-aurora-reader-3"
+      DBInstanceClass: !If [IsProduction, db.r6g.xlarge, db.r6g.large]
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraInstanceParameterGroup
+      AvailabilityZone: !Sub "${AWS::Region}c"
+      
+      # Monitoring
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSEnhancedMonitoringRole.Arn
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-reader-3"
+        - Key: Role
+          Value: read-replica
+        - Key: AZ
+          Value: !Sub "${AWS::Region}c"
+
+  # Database Security Group
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Environment}-aurora-security-group"
+      GroupDescription: Security group for Aurora PostgreSQL cluster
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        # Allow connections from API tier
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref APITierSecurityGroup
+          Description: API tier access
+        
+        # Allow connections from Lambda functions
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          Description: Lambda function access
+          
+        # Allow connections from bastion host (for admin access)
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
+          Description: Bastion host admin access
+      
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-sg"
+
+  # KMS Key for Database Encryption
+  DatabaseKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for Aurora PostgreSQL encryption
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow RDS Service
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-aurora-kms-key"
+
+  DatabaseKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${Environment}-aurora-key"
+      TargetKeyId: !Ref DatabaseKMSKey
+
+  # Enhanced Monitoring Role
+  RDSEnhancedMonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-rds-monitoring-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: monitoring.rds.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
+
+  # Connection Pool Lambda Function (for application-level connection pooling)
+  ConnectionPoolLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${Environment}-db-connection-pool"
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt ConnectionPoolLambdaRole.Arn
+      Code:
+        ZipFile: |
+          const { Pool } = require('pg');
+          
+          // Connection pool configuration
+          const pools = new Map();
+          
+          const createPool = (config) => {
+            const poolKey = `${config.host}:${config.port}:${config.database}`;
+            
+            if (!pools.has(poolKey)) {
+              const pool = new Pool({
+                ...config,
+                max: 20, // Maximum connections per Lambda
+                idle: 10000, // 10 seconds
+                connectionTimeoutMillis: 5000,
+                idleTimeoutMillis: 30000,
+                allowExitOnIdle: true
+              });
+              
+              pools.set(poolKey, pool);
+            }
+            
+            return pools.get(poolKey);
+          };
+          
+          exports.handler = async (event) => {
+            const { query, params, connectionConfig } = event;
+            
+            const pool = createPool(connectionConfig);
+            
+            try {
+              const client = await pool.connect();
+              const result = await client.query(query, params);
+              client.release();
+              
+              return {
+                statusCode: 200,
+                body: JSON.stringify(result.rows)
+              };
+            } catch (error) {
+              console.error('Database query error:', error);
+              return {
+                statusCode: 500,
+                body: JSON.stringify({ error: error.message })
+              };
+            }
+          };
+      
+      Environment:
+        Variables:
+          DB_CLUSTER_ENDPOINT: !GetAtt AuroraCluster.Endpoint
+          DB_READER_ENDPOINT: !GetAtt AuroraCluster.ReadEndpoint
+          DB_NAME: !Ref DatabaseName
+      
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref DatabaseSubnet1
+          - !Ref DatabaseSubnet2
+      
+      Timeout: 30
+      ReservedConcurrencyLimit: 50
+
+  ConnectionPoolLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: DatabaseAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBClusters
+                  - rds:DescribeDBInstances
+                Resource: '*'
+
+  # CloudWatch Alarms for Database Performance
+  DatabaseConnectionsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-db-high-connections"
+      AlarmDescription: Database connections are high
+      MetricName: DatabaseConnections
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 400
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: DBClusterIdentifier
+          Value: !Ref AuroraCluster
+      AlarmActions:
+        - !Ref DatabaseAlertsSnsTopic
+
+  DatabaseCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-db-high-cpu"
+      AlarmDescription: Database CPU utilization is high
+      MetricName: CPUUtilization
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: DBClusterIdentifier
+          Value: !Ref AuroraCluster
+      AlarmActions:
+        - !Ref DatabaseAlertsSnsTopic
+
+  DatabaseReadLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${Environment}-db-read-latency"
+      AlarmDescription: Database read latency is high
+      MetricName: ReadLatency
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 0.1  # 100ms
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: DBClusterIdentifier
+          Value: !Ref AuroraCluster
+      AlarmActions:
+        - !Ref DatabaseAlertsSnsTopic
+
+  # SNS Topic for Database Alerts
+  DatabaseAlertsSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-database-alerts"
+      DisplayName: Database Performance Alerts
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, production]
+
+Outputs:
+  ClusterEndpoint:
+    Description: Aurora cluster writer endpoint
+    Value: !GetAtt AuroraCluster.Endpoint
+    Export:
+      Name: !Sub "${Environment}-aurora-writer-endpoint"
+
+  ReaderEndpoint:
+    Description: Aurora cluster reader endpoint
+    Value: !GetAtt AuroraCluster.ReadEndpoint
+    Export:
+      Name: !Sub "${Environment}-aurora-reader-endpoint"
+
+  ClusterIdentifier:
+    Description: Aurora cluster identifier
+    Value: !Ref AuroraCluster
+    Export:
+      Name: !Sub "${Environment}-aurora-cluster-id"
+
+  DatabaseSecurityGroupId:
+    Description: Database security group ID
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: !Sub "${Environment}-db-sg-id"
+
+  ConnectionPoolLambdaArn:
+    Description: Connection pool Lambda function ARN
+    Value: !GetAtt ConnectionPoolLambda.Arn
+    Export:
+      Name: !Sub "${Environment}-connection-pool-lambda-arn"
