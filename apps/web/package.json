@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "live:headed": "cross-env UI_MODERN_V1=1 NEXT_PUBLIC_UI_MODERN_V1=1 node tools/runHeadedReview.js",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -28,6 +30,9 @@
     "test:public:headed": "PUBLIC_PORTAL_MODERN=1 HEADLESS=0 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=chromium --headed",
     "test:public:mobile": "PUBLIC_PORTAL_MODERN=1 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=\"iPhone 14\"",
     "test:public:video": "PUBLIC_PORTAL_MODERN=1 RECORD_VIDEO=1 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=chromium",
+    "test:public:perf": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/public-portal-performance.spec.ts --project=chromium",
+    "test:public:perf:headed": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/public-portal-performance.spec.ts --project=chromium --headed",
+    "test:public:a11y": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/a11y.spec.ts --grep=\"Public Portal\" --project=chromium",
     "pw:clean": "rm -rf .pw-user artifacts/playwright/screenshots/* artifacts/playwright/traces/* artifacts/playwright/videos/*",
     "pw:report": "playwright show-report artifacts/playwright/html",
     "pw:trace": "playwright show-trace",
@@ -42,6 +47,8 @@
     "@hookform/resolvers": "^3.7.0",
     "@next/font": "^14.2.5",
     "@radix-ui/react-scroll-area": "^1.0.5",
+    "@stripe/react-stripe-js": "^2.4.0",
+    "@stripe/stripe-js": "^2.4.0",
     "@tanstack/react-query": "^5.51.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
@@ -75,7 +82,16 @@
     "tailwind-merge": "^2.4.0",
     "use-debounce": "^10.0.1",
     "zod": "^3.23.8",
-    "zustand": "^4.5.4"
+    "zustand": "^4.5.4",
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0",
+    "@tensorflow/tfjs": "^4.20.0",
+    "ml-matrix": "^6.10.7",
+    "uuid": "^10.0.0",
+    "@types/uuid": "^10.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
@@ -108,7 +124,8 @@
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "tailwindcss": "^3.4.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "browserslist": {
     "production": [

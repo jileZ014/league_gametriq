@@ -563,10 +563,10 @@ function ModernPortalFooter() {
       <div className="container-modern py-8">
         <div className="text-center">
           <div className="text-white font-bold text-lg mb-2">
-            🏀 Phoenix Youth Basketball
+            🏀 Legacy Youth Sports Basketball
           </div>
           <div className="text-arena-light text-sm">
-            Powered by Gametriq | Modern UI Enabled
+            Phoenix Youth Basketball Excellence | Modern UI Enabled
           </div>
           <div className="text-phoenix-desert text-xs mt-2">
             Supporting 80+ leagues, 3,500+ teams across the Phoenix metro area
@@ -583,7 +583,7 @@ function LegacyPortalFooter() {
     <footer className="border-t mt-auto">
       <div className="container mx-auto px-4 py-6">
         <div className="text-center text-muted-foreground text-sm">
-          Powered by Gametriq
+          Legacy Youth Sports - Phoenix Basketball League
         </div>
       </div>
     </footer>
