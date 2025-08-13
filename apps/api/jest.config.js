@@ -1,0 +1,40 @@
+module.exports = {
+  moduleFileExtensions: ['js', 'json', 'ts'],
+  rootDir: 'src',
+  testRegex: '.*\\.spec\\.ts$',
+  transform: {
+    '^.+\\.(t|j)s$': 'ts-jest',
+  },
+  collectCoverageFrom: [
+    '**/*.(t|j)s',
+    '!**/*.module.ts',
+    '!**/*.interface.ts',
+    '!**/*.dto.ts',
+    '!**/*.entity.ts',
+    '!**/index.ts',
+    '!**/main.ts',
+    '!**/*.config.ts',
+    '!**/migrations/**',
+    '!**/test/**',
+  ],
+  coverageDirectory: '../coverage',
+  testEnvironment: 'node',
+  coverageThreshold: {
+    global: {
+      branches: 95,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+  },
+  setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+    '^@modules/(.*)$': '<rootDir>/modules/$1',
+    '^@common/(.*)$': '<rootDir>/common/$1',
+    '^@config/(.*)$': '<rootDir>/config/$1',
+    '^@websocket/(.*)$': '<rootDir>/websocket/$1',
+  },
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+  verbose: true,
+};

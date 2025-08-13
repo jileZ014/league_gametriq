@@ -14,11 +14,19 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --config=jest-integration.config.js",
+    "test:e2e": "jest --config=jest-e2e.config.js",
+    "test:performance": "jest --config=jest-performance.config.js",
+    "test:mutation": "stryker run",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:cov": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "sonar:scan": "sonar-scanner",
+    "sonar:quality-gate": "sonar-quality-gate-check"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
@@ -61,7 +69,12 @@
     "swagger-ui-express": "^5.0.0",
     "typeorm": "^0.3.17",
     "uuid": "^9.0.1",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "puppeteer": "^21.6.1",
+    "handlebars": "^4.7.8",
+    "nodemailer": "^6.9.8",
+    "node-cron": "^3.0.3",
+    "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",
@@ -97,7 +110,11 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/puppeteer": "^5.4.7",
+    "@types/handlebars": "^4.1.0",
+    "@types/nodemailer": "^6.4.14",
+    "@types/node-cron": "^3.0.11"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -111,9 +128,54 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!**/*.e2e-spec.ts",
+      "!**/main.ts",
+      "!**/*.interface.ts",
+      "!**/*.dto.ts",
+      "!**/*.entity.ts",
+      "!**/*.module.ts"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 95,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      },
+      "./modules/tournaments/": {
+        "branches": 98,
+        "functions": 98,
+        "lines": 98,
+        "statements": 98
+      },
+      "./modules/payments/": {
+        "branches": 97,
+        "functions": 97,
+        "lines": 97,
+        "statements": 97
+      },
+      "./websocket/": {
+        "branches": 96,
+        "functions": 96,
+        "lines": 96,
+        "statements": 96
+      }
+    },
+    "coverageReporters": [
+      "html",
+      "text",
+      "lcov",
+      "clover",
+      "json-summary"
+    ],
+    "testTimeout": 10000,
+    "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+    "moduleNameMapping": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
   }
 }

@@ -16,6 +16,10 @@ import { RolesGuard } from './common/guards/roles.guard';
 // Middleware
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import { TenantMiddleware } from './middleware/tenant.middleware';
+import { PerformanceMiddleware, FieldSelectionInterceptor, PaginationInterceptor } from './middleware/performance.middleware';
+
+// Services
+import { CacheService } from './common/services/cache.service';
 
 // Modules
 import { AuditModule } from './modules/audit/audit.module';
@@ -27,6 +31,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ScheduleModule as SchedulingModule } from './modules/schedule/schedule.module';
 import { TeamsModule } from './modules/teams/teams.module';
+import { TournamentModule } from './modules/tournaments/tournament.module';
 import { UsersModule } from './modules/users/users.module';
 import { WebSocketModule } from './modules/websocket/websocket.module';
 import { QueueModule } from './modules/queue/queue.module';
@@ -106,6 +111,7 @@ import { DatabaseConfig } from './config/database.config';
     UsersModule,
     LeaguesModule,
     TeamsModule,
+    TournamentModule,
     GamesModule,
     SchedulingModule,
     PaymentsModule,
@@ -116,6 +122,7 @@ import { DatabaseConfig } from './config/database.config';
     QueueModule,
   ],
   providers: [
+    // Global Guards
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -128,10 +135,26 @@ import { DatabaseConfig } from './config/database.config';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    // Performance Interceptors
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: FieldSelectionInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PaginationInterceptor,
+    },
+    // Global Services
+    CacheService,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // Performance middleware - applied first for optimal compression
+    consumer
+      .apply(PerformanceMiddleware)
+      .forRoutes('*');
+    
     consumer
       .apply(LoggingMiddleware)
       .forRoutes('*');
