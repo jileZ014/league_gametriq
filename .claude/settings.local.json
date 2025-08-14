@@ -47,7 +47,8 @@
       "Bash(pnpm add:*)",
       "Bash(npm:*)",
       "Bash(mv:*)",
-      "Bash(timeout 30s npx next dev -p 3002)"
+      "Bash(timeout 30s npx next dev -p 3002)",
+      "Bash(netlify:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
