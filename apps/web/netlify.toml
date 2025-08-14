@@ -1,6 +1,6 @@
 [build]
-  command = "CI=false npm run build"
-  publish = ".next"
+  command = "npm run build"
+  publish = "out"  # CHANGED from ".next" to "out"
 
 [build.environment]
   NEXT_PUBLIC_SUPABASE_URL = "https://mqfpbqvkhqjivqeqaclj.supabase.co"
@@ -8,8 +8,8 @@
   NODE_VERSION = "20"
   NPM_VERSION = "10"
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"  # COMMENTED OUT
 
 [[redirects]]
   from = "/api/*"
