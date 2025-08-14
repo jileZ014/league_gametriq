@@ -190,7 +190,7 @@ export default function HomePage() {
                     </Link>
                   </Button>
                   <Button variant="outline" size="lg" asChild>
-                    <Link href="/demo">View Demo</Link>
+                    <Link href="/dashboard">View Dashboard</Link>
                   </Button>
                 </div>
 
@@ -383,7 +383,7 @@ export default function HomePage() {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-basketball-green-500" asChild>
-                    <Link href="/contact">Contact Sales</Link>
+                    <Link href="/tournaments">View Tournaments</Link>
                   </Button>
                 </div>
               </motion.div>
