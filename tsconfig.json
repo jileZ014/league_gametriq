@@ -1,0 +1,119 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "es6", "es2020", "es2021"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./lib/*", "./src/*"],
+      "@/components/*": ["./src/components/*", "./apps/web/src/components/*"],
+      "@/lib/*": ["./lib/*", "./src/lib/*", "./apps/web/src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*", "./apps/web/src/hooks/*"],
+      "@/utils/*": ["./src/utils/*", "./lib/*"],
+      "@/types/*": ["./src/types/*", "./apps/web/src/types/*"],
+      "@/styles/*": ["./src/styles/*", "./apps/web/src/styles/*"],
+      "@/api/*": ["./apps/api/src/*"],
+      "@/shared/*": ["./packages/shared/*"],
+      "@gametriq/shared": ["./packages/shared/src"],
+      "@gametriq/web": ["./apps/web/src"],
+      "@gametriq/api": ["./apps/api/src"],
+      "@gametriq/mobile": ["./apps/mobile/src"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "declaration": false,
+    "declarationMap": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitUseStrict": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    ".next/types/**/*.ts",
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "lib/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "services/**/*.ts",
+    "packages/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "apps/*/node_modules",
+    "apps/*/.next",
+    "apps/*/dist",
+    "apps/*/build",
+    "services/*/node_modules",
+    "services/*/dist",
+    "packages/*/node_modules",
+    "packages/*/dist",
+    "infrastructure",
+    "docs",
+    "tests",
+    "playwright-report",
+    "test-results"
+  ],
+  "ts-node": {
+    "esm": true
+  },
+  "references": [
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./apps/mobile"
+    }
+  ]
+}

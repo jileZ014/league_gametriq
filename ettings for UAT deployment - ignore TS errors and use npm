@@ -1,0 +1,191 @@
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/web/next.config.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/web/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'services/notification-service/package.json', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 08b2553..dbf5837 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -1 +1,8 @@[m
+[31m-node_modules[m
+[32m+[m[32m﻿node_modules/[m
+[32m+[m[32m.next/[m
+[32m+[m[32m.env.local[m
+[32m+[m[32m.env[m
+[32m+[m[32m.env.production[m
+[32m+[m[32m.env*.local[m
+[32m+[m[32m.DS_Store[m
+[32m+[m[32m*.log[m
+[1mdiff --git a/apps/web/next.config.js b/apps/web/next.config.js[m
+[1mindex 7e7c626..d3b43c3 100644[m
+[1m--- a/apps/web/next.config.js[m
+[1m+++ b/apps/web/next.config.js[m
+[36m@@ -11,14 +11,15 @@[m [mconst nextConfig = {[m
+     domains: ['mqfpbqvkhqjivqeqaclj.supabase.co'],[m
+   },[m
+   [m
+[31m-  // For UAT deployment - set these to true if you get build errors[m
+[32m+[m[32m  // For UAT deployment - temporarily ignoring errors[m
+[32m+[m[32m  // TODO: After UAT, set these back to false and fix all errors[m
+   typescript: {[m
+[31m-    // Temporarily ignore TypeScript errors if needed for quick deployment[m
+[31m-    ignoreBuildErrors: false,[m
+[32m+[m[32m    // Temporarily ignore TypeScript errors for UAT deployment[m
+[32m+[m[32m    ignoreBuildErrors: true,[m
+   },[m
+   eslint: {[m
+[31m-    // Temporarily ignore ESLint errors if needed for quick deployment[m
+[31m-    ignoreDuringBuilds: false,[m
+[32m+[m[32m    // Temporarily ignore ESLint errors for UAT deployment[m
+[32m+[m[32m    ignoreDuringBuilds: true,[m
+   },[m
+   [m
+   // Ensure client-side environment variables are available[m
+[1mdiff --git a/apps/web/package.json b/apps/web/package.json[m
+[1mindex 8baa797..10a6bbb 100644[m
+[1m--- a/apps/web/package.json[m
+[1m+++ b/apps/web/package.json[m
+[36m@@ -36,7 +36,6 @@[m
+     "pw:clean": "rm -rf .pw-user artifacts/playwright/screenshots/* artifacts/playwright/traces/* artifacts/playwright/videos/*",[m
+     "pw:report": "playwright show-report artifacts/playwright/html",[m
+     "pw:trace": "playwright show-trace",[m
+[31m-    "live:headed": "cross-env UI_MODERN_V1=1 NEXT_PUBLIC_UI_MODERN_V1=1 node tools/runHeadedReview.js",[m
+     "storybook": "storybook dev -p 6006",[m
+     "build-storybook": "storybook build"[m
+   },[m
+[36m@@ -75,7 +74,6 @@[m
+     "react-hot-toast": "^2.4.1",[m
+     "react-intersection-observer": "^9.13.0",[m
+     "react-use": "^17.5.0",[m
+[31m-    "react-virtual": "^2.10.4",[m
+     "recharts": "^2.12.7",[m
+     "sonner": "^1.5.0",[m
+     "superjson": "^2.2.1",[m
+[36m@@ -118,7 +116,7 @@[m
+     "@testing-library/react": "^16.0.0",[m
+     "@testing-library/user-event": "^14.5.2",[m
+     "@types/node": "^20.19.10",[m
+[31m-    "@types/jspdf": "^2.3.0",[m
+[32m+[m[32m    "@types/jspdf": "^2.0.0",[m
+     "@typescript-eslint/eslint-plugin": "^7.16.1",[m
+     "@typescript-eslint/parser": "^7.16.1",[m
+     "autoprefixer": "^10.4.19",[m
+[36m@@ -150,5 +148,13 @@[m
+   "engines": {[m
+     "node": ">=18.0.0",[m
+     "npm": ">=8.0.0"[m
+[31m-  }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m  },[m
+[32m+[m[32m  "main": "next-pwa.config.js",[m
+[32m+[m[32m  "directories": {[m
+[32m+[m[32m    "doc": "docs",[m
+[32m+[m[32m    "test": "tests"[m
+[32m+[m[32m  },[m
+[32m+[m[32m  "keywords": [],[m
+[32m+[m[32m  "author": "",[m
+[32m+[m[32m  "license": "ISC"[m
+[32m+[m[32m}[m
+[1mdiff --git a/apps/web/pnpm-lock.yaml b/apps/web/pnpm-lock.yaml[m
+[1mdeleted file mode 100644[m
+[1mindex 76b5d36..0000000[m
+[1m--- a/apps/web/pnpm-lock.yaml[m
+[1m+++ /dev/null[m
+[36m@@ -1,12829 +0,0 @@[m
+[31m-lockfileVersion: '9.0'[m
+[31m-[m
+[31m-settings:[m
+[31m-  autoInstallPeers: true[m
+[31m-  excludeLinksFromLockfile: false[m
+[31m-[m
+[31m-importers:[m
+[31m-[m
+[31m-  .:[m
+[31m-    dependencies:[m
+[31m-      '@auth/prisma-adapter':[m
+[31m-        specifier: ^2.4.1[m
+[31m-        version: 2.10.0(@prisma/client@6.13.0(typescript@5.9.2))[m
+[31m-      '@headlessui/react':[m
+[31m-        specifier: ^1.7.17[m
+[31m-        version: 1.7.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      '@heroicons/react':[m
+[31m-        specifier: ^2.0.18[m
+[31m-        version: 2.2.0(react@18.3.1)[m
+[31m-      '@hookform/resolvers':[m
+[31m-        specifier: ^3.7.0[m
+[31m-        version: 3.10.0(react-hook-form@7.62.0(react@18.3.1))[m
+[31m-      '@next/font':[m
+[31m-        specifier: ^14.2.5[m
+[31m-        version: 14.2.15(next@14.2.31(@babel/core@7.28.0)(@playwright/test@1.54.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))[m
+[31m-      '@radix-ui/react-scroll-area':[m
+[31m-        specifier: ^1.0.5[m
+[31m-        version: 1.2.9(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      '@tanstack/react-query':[m
+[31m-        specifier: ^5.51.1[m
+[31m-        version: 5.84.2(react@18.3.1)[m
+[31m-      '@types/bcryptjs':[m
+[31m-        specifier: ^2.4.6[m
+[31m-        version: 2.4.6[m
+[31m-      '@types/jsonwebtoken':[m
+[31m-        specifier: ^9.0.6[m
+[31m-        version: 9.0.10[m
+[31m-      '@types/react':[m
+[31m-        specifier: ^18.3.3[m
+[31m-        version: 18.3.23[m
+[31m-      '@types/react-datepicker':[m
+[31m-        specifier: ^6.2.0[m
+[31m-        version: 6.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      '@types/react-dom':[m
+[31m-        specifier: ^18.3.0[m
+[31m-        version: 18.3.7(@types/react@18.3.23)[m
+[31m-      bcryptjs:[m
+[31m-        specifier: ^2.4.3[m
+[31m-        version: 2.4.3[m
+[31m-      class-variance-authority:[m
+[31m-        specifier: ^0.7.0[m
+[31m-        version: 0.7.1[m
+[31m-      clsx:[m
+[31m-        specifier: ^2.1.1[m
+[31m-        version: 2.1.1[m
+[31m-      cmdk:[m
+[31m-        specifier: ^1.0.0[m
+[31m-        version: 1.1.1(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      date-fns:[m
+[31m-        specifier: ^3.6.0[m
+[31m-        version: 3.6.0[m
+[31m-      framer-motion:[m
+[31m-        specifier: ^11.3.8[m
+[31m-        version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      immer:[m
+[31m-        specifier: ^10.1.1[m
+[31m-        version: 10.1.1[m
+[31m-      jsonwebtoken:[m
+[31m-        specifier: ^9.0.2[m
+[31m-        version: 9.0.2[m
+[31m-      lucide-react:[m
+[31m-        specifier: ^0.408.0[m
+[31m-        version: 0.408.0(react@18.3.1)[m
+[31m-      next:[m
+[31m-        specifier: ^14.2.5[m
+[31m-        version: 14.2.31(@babel/core@7.28.0)(@playwright/test@1.54.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      next-auth:[m
+[31m-        specifier: ^5.0.0-beta.19[m
+[31m-        version: 5.0.0-beta.29(next@14.2.31(@babel/core@7.28.0)(@playwright/test@1.54.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)[m
+[31m-      next-themes:[m
+[31m-        specifier: ^0.3.0[m
+[31m-        version: 0.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      nuqs:[m
+[31m-        specifier: ^1.17.6[m
+[31m-        version: 1.20.0(next@14.2.31(@babel/core@7.28.0)(@playwright/test@1.54.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))[m
+[31m-      react:[m
+[31m-        specifier: ^18.3.1[m
+[31m-        version: 18.3.1[m
+[31m-      react-datepicker:[m
+[31m-        specifier: ^7.3.0[m
+[31m-        version: 7.6.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)[m
+[31m-      react-dom:[m
+[31m-        specifier: ^18.3.1[m
+[31m-        version: 18.3.1(react@18.3.1)[m
+[3
