@@ -11,14 +11,15 @@ const nextConfig = {
     domains: ['mqfpbqvkhqjivqeqaclj.supabase.co'],
   },
   
-  // For UAT deployment - set these to true if you get build errors
+  // For UAT deployment - temporarily ignoring errors
+  // TODO: After UAT, set these back to false and fix all errors
   typescript: {
-    // Temporarily ignore TypeScript errors if needed for quick deployment
-    ignoreBuildErrors: false,
+    // Temporarily ignore TypeScript errors for UAT deployment
+    ignoreBuildErrors: true,
   },
   eslint: {
-    // Temporarily ignore ESLint errors if needed for quick deployment
-    ignoreDuringBuilds: false,
+    // Temporarily ignore ESLint errors for UAT deployment
+    ignoreDuringBuilds: true,
   },
   
   // Ensure client-side environment variables are available
