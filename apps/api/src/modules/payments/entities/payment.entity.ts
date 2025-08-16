@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { PaymentLedger } from './payment-ledger.entity';
 import { Refund } from './refund.entity';
 import { Dispute } from './dispute.entity';
+import { User } from '../../users/entities/user.entity';
 
 export type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | 'refunded';
 
@@ -47,6 +48,10 @@ export class Payment {
   updatedAt: Date;
 
   // Relations
+  @ManyToOne(() => User, user => user.payments)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
   @OneToMany(() => PaymentLedger, ledger => ledger.payment)
   ledgerEntries: PaymentLedger[];
 

@@ -1,0 +1,80 @@
+{
+  "version": 2,
+  "name": "gametriq-api",
+  "runtime": "nodejs18.x",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run start:dev",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "JWT_EXPIRES_IN": "7d",
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "REDIS_URL": "@redis_url",
+    "EMAIL_FROM": "@email_from",
+    "EMAIL_SMTP_HOST": "@email_smtp_host",
+    "EMAIL_SMTP_PORT": "@email_smtp_port",
+    "EMAIL_SMTP_USER": "@email_smtp_user",
+    "EMAIL_SMTP_PASS": "@email_smtp_pass"
+  },
+  "build": {
+    "env": {
+      "SKIP_ENV_VALIDATION": "1"
+    }
+  },
+  "functions": {
+    "dist/main.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "routes": [
+    {
+      "src": "/health",
+      "dest": "dist/main.js"
+    },
+    {
+      "src": "/api/docs",
+      "dest": "dist/main.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "dist/main.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "dist/main.js"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}

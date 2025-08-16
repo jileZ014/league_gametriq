@@ -29,15 +29,17 @@ import { GamesModule } from './modules/games/games.module';
 import { LeaguesModule } from './modules/leagues/leagues.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { ScheduleModule as SchedulingModule } from './modules/schedule/schedule.module';
+import { AppScheduleModule } from './modules/app-schedule/app-schedule.module';
 import { TeamsModule } from './modules/teams/teams.module';
 import { TournamentModule } from './modules/tournaments/tournament.module';
 import { UsersModule } from './modules/users/users.module';
 import { WebSocketModule } from './modules/websocket/websocket.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 // Configuration
 import configuration from './config/configuration';
+import performanceConfig from './config/performance.config';
 import { DatabaseConfig } from './config/database.config';
 
 @Module({
@@ -45,7 +47,7 @@ import { DatabaseConfig } from './config/database.config';
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration],
+      load: [configuration, performanceConfig],
       envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
     }),
 
@@ -62,9 +64,10 @@ import { DatabaseConfig } from './config/database.config';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         store: redisStore,
-        host: configService.get('REDIS_HOST', 'localhost'),
-        port: configService.get('REDIS_PORT', 6379),
-        password: configService.get('REDIS_PASSWORD'),
+        host: configService.get('redis.host', 'localhost'),
+        port: configService.get('redis.port', 6379),
+        password: configService.get('redis.password'),
+        db: configService.get('redis.db', 0),
         ttl: 300, // 5 minutes default
       }),
     }),
@@ -74,8 +77,10 @@ import { DatabaseConfig } from './config/database.config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        ttl: 60,
-        limit: configService.get('RATE_LIMIT', 100),
+        throttlers: [{
+          ttl: 60000,
+          limit: configService.get('security.rateLimit', 100),
+        }],
         storage: redisStore,
         ignoreUserAgents: [/googlebot/gi, /bingbot/gi],
       }),
@@ -87,9 +92,10 @@ import { DatabaseConfig } from './config/database.config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD'),
+          host: configService.get('redis.host', 'localhost'),
+          port: configService.get('redis.port', 6379),
+          password: configService.get('redis.password'),
+          db: configService.get('redis.db', 0),
         },
         defaultJobOptions: {
           attempts: 3,
@@ -113,10 +119,11 @@ import { DatabaseConfig } from './config/database.config';
     TeamsModule,
     TournamentModule,
     GamesModule,
-    SchedulingModule,
+    AppScheduleModule,
     PaymentsModule,
     BrandingModule,
     NotificationsModule,
+    ReportsModule,
     AuditModule,
     WebSocketModule,
     QueueModule,

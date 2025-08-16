@@ -34,27 +34,43 @@ import { Throttle } from '@nestjs/throttler';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private hashIpAddress(ipAddress: string): string {
+    const crypto = require('crypto');
+    return crypto.createHash('sha256').update(ipAddress + 'salt').digest('hex');
+  }
+
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle(5, 60) // 5 requests per minute
+  @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 requests per 5 minutes (stricter for youth platform)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Invalid registration data' })
   @ApiResponse({ status: 409, description: 'User already exists' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto, @Req() req: any) {
+    // Additional security headers for youth platform
+    req.res.setHeader('X-Content-Type-Options', 'nosniff');
+    req.res.setHeader('X-Frame-Options', 'DENY');
+    req.res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    return this.authService.register(registerDto, req.ip);
   }
 
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle(5, 60) // 5 requests per minute
+  @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 requests per 5 minutes (stricter for security)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Successfully logged in' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto, @Req() req: any) {
+    // Enhanced security headers
+    req.res.setHeader('X-Content-Type-Options', 'nosniff');
+    req.res.setHeader('X-Frame-Options', 'DENY');
+    req.res.setHeader('X-XSS-Protection', '1; mode=block');
+    req.res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    
     return this.authService.login(req.user, req.ip, req.headers['user-agent']);
   }
 
@@ -62,7 +78,7 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @Throttle(10, 60) // 10 requests per minute
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Token successfully refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
@@ -113,21 +129,37 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @Throttle(3, 60) // 3 requests per minute
+  @Throttle({ default: { limit: 2, ttl: 900000 } }) // 2 requests per 15 minutes (very strict)
   @ApiOperation({ summary: 'Request password reset' })
   @ApiResponse({ status: 200, description: 'Password reset email sent' })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto, @Req() req: any) {
+    // Log password reset attempt for security monitoring
+    console.log('[SECURITY_AUDIT]', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      eventType: 'PASSWORD_RESET_REQUEST',
+      email: forgotPasswordDto.email,
+      ipHash: this.hashIpAddress(req.ip),
+    }));
+    
     return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @Throttle(3, 60) // 3 requests per minute
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per hour
   @ApiOperation({ summary: 'Reset password with token' })
   @ApiResponse({ status: 200, description: 'Password successfully reset' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Req() req: any) {
+    // Log password reset completion for security monitoring
+    console.log('[SECURITY_AUDIT]', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      eventType: 'PASSWORD_RESET_COMPLETED',
+      token: resetPasswordDto.token.substring(0, 8) + '***', // Log partial token
+      ipHash: this.hashIpAddress(req.ip),
+    }));
+    
     return this.authService.resetPassword(
       resetPasswordDto.token,
       resetPasswordDto.newPassword,
@@ -137,16 +169,28 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('mfa/enable')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 requests per hour
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Enable MFA for user' })
   @ApiResponse({ status: 200, description: 'MFA setup initiated' })
-  async enableMfa(@CurrentUser() user: any) {
+  async enableMfa(@CurrentUser() user: any, @Req() req: any) {
+    // COPPA: Restrict MFA methods for minors
+    if (user.isMinor) {
+      console.log('[SECURITY_AUDIT]', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        eventType: 'MINOR_MFA_ENABLE_ATTEMPT',
+        userId: user.sub,
+        ipHash: this.hashIpAddress(req.ip),
+      }));
+    }
+    
     return this.authService.enableMfa(user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 requests per 5 minutes
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify MFA token' })
   @ApiResponse({ status: 200, description: 'MFA successfully verified' })
@@ -154,7 +198,17 @@ export class AuthController {
   async verifyMfa(
     @CurrentUser() user: any,
     @Body() verifyMfaDto: VerifyMfaDto,
+    @Req() req: any,
   ) {
+    // Enhanced logging for MFA verification
+    console.log('[SECURITY_AUDIT]', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      eventType: 'MFA_VERIFICATION_ATTEMPT',
+      userId: user.sub,
+      isMinor: user.isMinor,
+      ipHash: this.hashIpAddress(req.ip),
+    }));
+    
     return this.authService.verifyMfa(user.sub, verifyMfaDto.token);
   }
 
@@ -173,10 +227,21 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('sessions')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get active sessions' })
   @ApiResponse({ status: 200, description: 'Active sessions retrieved' })
-  async getSessions(@CurrentUser() user: any) {
+  async getSessions(@CurrentUser() user: any, @Req() req: any) {
+    // Enhanced monitoring for session access
+    if (user.isMinor) {
+      console.log('[SECURITY_AUDIT]', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        eventType: 'MINOR_SESSION_ACCESS',
+        userId: user.sub,
+        ipHash: this.hashIpAddress(req.ip),
+      }));
+    }
+    
     return this.authService.getActiveSessions(user.sub);
   }
 

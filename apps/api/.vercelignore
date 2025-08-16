@@ -1,0 +1,54 @@
+# Dependencies
+node_modules
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.local
+
+# Source files (only deploy built files)
+src
+
+# Build artifacts (keep dist for serverless)
+# dist is needed for Vercel
+
+# Testing
+coverage
+test
+tests
+*.spec.ts
+*.test.ts
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.eslintcache
+
+# Documentation
+*.md
+docs
+
+# Database files
+*.sqlite
+*.db
+
+# Other apps
+../web
+../mobile
+
+# Development configs
+jest*.config.js
+.eslintrc.js
+tsconfig.json

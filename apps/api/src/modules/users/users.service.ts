@@ -30,7 +30,7 @@ export class UsersService {
       const pepper = this.configService.get('security.pepper');
       createUserDto.password = await bcrypt.hash(
         createUserDto.password + pepper,
-        this.configService.get('security.bcryptRounds'),
+        this.configService.get('security.bcryptRounds') || 12,
       );
     }
 

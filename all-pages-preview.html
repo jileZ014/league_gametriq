@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameTriq League App - All Pages Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .tab.active {
+            background: #ff9800;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,152,0,0.4);
+        }
+        .preview-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .preview-header {
+            background: linear-gradient(135deg, #ff9800 0%, #ff6b00 100%);
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preview-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .preview-url {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+            display: block;
+        }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .feature h3 {
+            color: #ff9800;
+            margin-top: 0;
+        }
+        .feature ul {
+            color: #4a5568;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 GameTriq Basketball League Management</h1>
+        <p class="subtitle">Full-Stack Next.js Application with Supabase Backend</p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showPage('overview')">📊 Overview</button>
+            <button class="tab" onclick="showPage('homepage')">🏠 Homepage</button>
+            <button class="tab" onclick="showPage('login')">🔐 Login</button>
+            <button class="tab" onclick="showPage('register')">📝 Register</button>
+            <button class="tab" onclick="showPage('dashboard')">📈 Dashboard</button>
+            <button class="tab" onclick="showPage('teams')">👥 Teams</button>
+        </div>
+
+        <div id="overview" class="page-content active">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>🎯</span>
+                        <span>Application Overview</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span>Live on Port 4000</span>
+                    </div>
+                </div>
+                <div style="padding: 40px;">
+                    <h2 style="color: #2d3748; margin-bottom: 30px;">GameTriq Features</h2>
+                    
+                    <div class="features">
+                        <div class="feature">
+                            <h3>🏆 League Management</h3>
+                            <ul>
+                                <li>Create and manage multiple leagues</li>
+                                <li>Age group categorization</li>
+                                <li>Season management</li>
+                                <li>League standings & statistics</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>👥 Team Management</h3>
+                            <ul>
+                                <li>Team registration & rosters</li>
+                                <li>Player profiles & stats</li>
+                                <li>Coach assignments</li>
+                                <li>Team performance tracking</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>🎮 Game Management</h3>
+                            <ul>
+                                <li>Game scheduling</li>
+                                <li>Live score tracking</li>
+                                <li>Real-time updates</li>
+                                <li>Offline support</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>🏅 Tournament System</h3>
+                            <ul>
+                                <li>Tournament brackets</li>
+                                <li>Single/Double elimination</li>
+                                <li>Round robin format</li>
+                                <li>Automatic advancement</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>📊 Analytics & Reports</h3>
+                            <ul>
+                                <li>Player statistics</li>
+                                <li>Team performance metrics</li>
+                                <li>League analytics</li>
+                                <li>Custom reports</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>🌡️ Phoenix Heat Safety</h3>
+                            <ul>
+                                <li>Real-time temperature monitoring</li>
+                                <li>Heat index alerts</li>
+                                <li>Safety protocol automation</li>
+                                <li>Game rescheduling</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h2 style="color: #2d3748; margin: 40px 0 20px;">User Roles</h2>
+                    <div class="features">
+                        <div class="feature">
+                            <h3>👨‍💼 League Admin</h3>
+                            <ul>
+                                <li>Full system access</li>
+                                <li>League configuration</li>
+                                <li>User management</li>
+                                <li>Financial reports</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>🏀 Coach</h3>
+                            <ul>
+                                <li>Team roster management</li>
+                                <li>Game strategy tools</li>
+                                <li>Player stats tracking</li>
+                                <li>Practice scheduling</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>👨‍👩‍👧 Parent</h3>
+                            <ul>
+                                <li>Game schedules</li>
+                                <li>Live score viewing</li>
+                                <li>Player performance</li>
+                                <li>Team announcements</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>⛹️ Player</h3>
+                            <ul>
+                                <li>Personal stats</li>
+                                <li>Game schedules</li>
+                                <li>Team information</li>
+                                <li>Achievement tracking</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>🏁 Referee</h3>
+                            <ul>
+                                <li>Game assignments</li>
+                                <li>Score management</li>
+                                <li>Foul tracking</li>
+                                <li>Game reports</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature">
+                            <h3>📝 Scorekeeper</h3>
+                            <ul>
+                                <li>Live scoring interface</li>
+                                <li>Stats entry</li>
+                                <li>Timeout management</li>
+                                <li>Quarter/period control</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h2 style="color: #2d3748; margin: 40px 0 20px;">Technical Stack</h2>
+                    <div style="background: #f7fafc; padding: 20px; border-radius: 8px;">
+                        <p><strong>Frontend:</strong> Next.js 14, TypeScript, Tailwind CSS, Framer Motion</p>
+                        <p><strong>Backend:</strong> Supabase (PostgreSQL), Real-time subscriptions</p>
+                        <p><strong>Authentication:</strong> Supabase Auth with role-based access</p>
+                        <p><strong>PWA Features:</strong> Offline support, installable, push notifications</p>
+                        <p><strong>Deployment:</strong> Vercel-ready with environment configuration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="homepage" class="page-content">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>🏠</span>
+                        <span>Homepage</span>
+                    </div>
+                    <div class="preview-url">http://localhost:4000/</div>
+                </div>
+                <iframe src="homepage.html"></iframe>
+            </div>
+        </div>
+
+        <div id="login" class="page-content">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>🔐</span>
+                        <span>Login Page</span>
+                    </div>
+                    <div class="preview-url">http://localhost:4000/login</div>
+                </div>
+                <iframe src="login.html"></iframe>
+            </div>
+        </div>
+
+        <div id="register" class="page-content">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>📝</span>
+                        <span>Registration Page</span>
+                    </div>
+                    <div class="preview-url">http://localhost:4000/register</div>
+                </div>
+                <iframe src="register.html"></iframe>
+            </div>
+        </div>
+
+        <div id="dashboard" class="page-content">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>📈</span>
+                        <span>Admin Dashboard</span>
+                    </div>
+                    <div class="preview-url">http://localhost:4000/dashboard</div>
+                </div>
+                <iframe src="dashboard.html"></iframe>
+            </div>
+        </div>
+
+        <div id="teams" class="page-content">
+            <div class="preview-container">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>👥</span>
+                        <span>Teams Management</span>
+                    </div>
+                    <div class="preview-url">http://localhost:4000/teams</div>
+                </div>
+                <iframe src="teams.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(page) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(p => p.classList.remove('active'));
+            
+            // Remove active from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(page).classList.add('active');
+            
+            // Mark tab as active
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

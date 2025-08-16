@@ -6,78 +6,12 @@ import { SubscriptionService } from './subscription.service';
 import { StripeConnectService } from './stripe-connect.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-// Business logic interfaces
-interface RegistrationFee {
-  id: string;
-  leagueId: string;
-  division: string;
-  baseAmount: number;
-  currency: string;
-  earlyBirdDiscount: number; // Percentage
-  earlyBirdDeadline: Date;
-  lateRegistrationFee: number; // Flat fee
-  lateRegistrationDate: Date;
-  multiTeamDiscount: number; // Percentage for 2+ teams
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface DiscountCode {
-  id: string;
-  code: string;
-  type: 'percentage' | 'fixed_amount';
-  value: number;
-  currency?: string;
-  maxUses?: number;
-  usedCount: number;
-  validFrom: Date;
-  validUntil: Date;
-  applicableItems: string[]; // Types of items this discount applies to
-  minimumAmount?: number;
-  active: boolean;
-  metadata: Record<string, any>;
-  createdAt: Date;
-}
-
-interface RegistrationOrder {
-  id: string;
-  userId: string;
-  leagueId: string;
-  orderType: 'team_registration' | 'tournament_entry' | 'subscription' | 'referee_certification';
-  items: OrderItem[];
-  subtotal: number;
-  discounts: OrderDiscount[];
-  totalDiscount: number;
-  taxes: number;
-  total: number;
-  currency: string;
-  status: 'draft' | 'pending_payment' | 'paid' | 'cancelled' | 'refunded';
-  paymentIntentId?: string;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface OrderItem {
-  id: string;
-  orderId: string;
-  type: 'registration_fee' | 'tournament_fee' | 'late_fee' | 'certification_fee';
-  description: string;
-  amount: number;
-  quantity: number;
-  metadata: Record<string, any>;
-}
-
-interface OrderDiscount {
-  id: string;
-  orderId: string;
-  discountCodeId?: string;
-  type: 'early_bird' | 'multi_team' | 'discount_code' | 'manual';
-  description: string;
-  amount: number;
-  metadata: Record<string, any>;
-}
+// Import actual entities
+import { RegistrationFee } from './entities/registration-fee.entity';
+import { DiscountCode } from './entities/discount-code.entity';
+import { RegistrationOrder } from './entities/registration-order.entity';
+import { OrderItem } from './entities/order-item.entity';
+import { OrderDiscount } from './entities/order-discount.entity';
 
 @Injectable()
 export class PaymentBusinessService {

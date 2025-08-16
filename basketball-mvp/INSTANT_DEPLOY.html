@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" style="background: #0f1419; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball League Management - Phoenix</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f1419; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 3rem; }
+        .header h1 { font-size: 3rem; font-weight: bold; margin-bottom: 1rem; }
+        .header p { font-size: 1.2rem; color: #94a3b8; }
+        .card { background: #1a1d29; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: #1a1d29; border-radius: 12px; padding: 1.5rem; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: bold; color: #ff6b35; margin-bottom: 0.5rem; }
+        .stat-label { color: #94a3b8; font-size: 0.9rem; }
+        .games-section { margin-bottom: 3rem; }
+        .games-grid { display: grid; gap: 1rem; }
+        .game-card { background: #1a1d29; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .game-teams { display: flex; align-items: center; gap: 2rem; }
+        .team { text-align: center; }
+        .team-name { font-weight: bold; margin-bottom: 0.5rem; }
+        .team-score { font-size: 2rem; font-weight: bold; color: #ff6b35; }
+        .vs { font-size: 1.5rem; color: #94a3b8; }
+        .live-badge { background: #dc2626; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; }
+        .btn-primary { background: #ff6b35; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary:hover { background: #e55a2b; }
+        .teams-table { width: 100%; border-collapse: collapse; }
+        .teams-table th, .teams-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #334155; }
+        .teams-table th { color: #94a3b8; font-weight: 500; }
+        .rank { color: #ff6b35; font-weight: bold; }
+        .wins { color: #10b981; }
+        .losses { color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Basketball League Management</h1>
+            <p>Phoenix Youth Basketball - Professional League Platform</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">48</div>
+                <div class="stat-label">Total Teams</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">576</div>
+                <div class="stat-label">Active Players</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Live Games</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Today's Games</div>
+            </div>
+        </div>
+
+        <!-- Live Games -->
+        <div class="games-section">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.8rem;">Live Games</h2>
+            <div class="games-grid">
+                <div class="game-card">
+                    <div class="game-teams">
+                        <div class="team">
+                            <div class="team-name">Phoenix Suns Youth</div>
+                            <div class="team-score">45</div>
+                        </div>
+                        <div class="vs">-</div>
+                        <div class="team">
+                            <div class="team-name">Desert Eagles</div>
+                            <div class="team-score">42</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="live-badge">LIVE Q3</div>
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.5rem;">Phoenix Sports Complex</div>
+                    </div>
+                </div>
+                <div class="game-card">
+                    <div class="game-teams">
+                        <div class="team">
+                            <div class="team-name">Gilbert Grizzlies</div>
+                            <div class="team-score">38</div>
+                        </div>
+                        <div class="vs">-</div>
+                        <div class="team">
+                            <div class="team-name">Peoria Panthers</div>
+                            <div class="team-score">35</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="live-badge">LIVE Q2</div>
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.5rem;">Gilbert Recreation Center</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Standings -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.8rem;">Team Standings - U12 Division</h2>
+            <table class="teams-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Coach</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>Win %</th>
+                        <th>PF</th>
+                        <th>PA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="rank">#1</span></td>
+                        <td>Phoenix Suns Youth</td>
+                        <td>Mike Johnson</td>
+                        <td><span class="wins">12</span></td>
+                        <td><span class="losses">3</span></td>
+                        <td>80.0%</td>
+                        <td>892</td>
+                        <td>721</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">#2</span></td>
+                        <td>Desert Eagles</td>
+                        <td>Sarah Williams</td>
+                        <td><span class="wins">10</span></td>
+                        <td><span class="losses">5</span></td>
+                        <td>66.7%</td>
+                        <td>823</td>
+                        <td>756</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">#3</span></td>
+                        <td>Scottsdale Storm</td>
+                        <td>David Chen</td>
+                        <td><span class="wins">8</span></td>
+                        <td><span class="losses">7</span></td>
+                        <td>53.3%</td>
+                        <td>745</td>
+                        <td>768</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Features -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.8rem;">Platform Features</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div>
+                    <h3 style="color: #ff6b35; margin-bottom: 1rem;">Real-Time Scoring</h3>
+                    <p style="color: #94a3b8;">Live game updates with quarter-by-quarter scoring and stats tracking</p>
+                </div>
+                <div>
+                    <h3 style="color: #ff6b35; margin-bottom: 1rem;">Team Management</h3>
+                    <p style="color: #94a3b8;">Complete roster management with player verification and statistics</p>
+                </div>
+                <div>
+                    <h3 style="color: #ff6b35; margin-bottom: 1rem;">League Administration</h3>
+                    <p style="color: #94a3b8;">Comprehensive tools for managing 80+ leagues and 3,500+ teams</p>
+                </div>
+                <div>
+                    <h3 style="color: #ff6b35; margin-bottom: 1rem;">Mobile-First Design</h3>
+                    <p style="color: #94a3b8;">Optimized for tablets and phones with offline capability</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div style="text-align: center; margin-top: 3rem;">
+            <h2 style="margin-bottom: 1rem;">Ready to Deploy for Phoenix Basketball</h2>
+            <p style="color: #94a3b8; margin-bottom: 2rem;">Professional platform supporting 1000+ concurrent users on game days</p>
+            <a href="#contact" class="btn-primary">Deploy Your League Platform</a>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate live score updates
+            const scores = document.querySelectorAll('.team-score');
+            setInterval(function() {
+                scores.forEach(score => {
+                    if (Math.random() > 0.95) { // 5% chance to update
+                        const currentScore = parseInt(score.textContent);
+                        score.textContent = currentScore + (Math.random() > 0.5 ? 2 : 3);
+                        score.style.color = '#ffd93d';
+                        setTimeout(() => {
+                            score.style.color = '#ff6b35';
+                        }, 1000);
+                    }
+                });
+            }, 3000);
+
+            // Add click handlers
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function() {
+                    alert('Live scoring interface would open here');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

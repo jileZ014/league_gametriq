@@ -1,0 +1,23 @@
+{
+  "name": "Basketball League MVP",
+  "short_name": "Basketball MVP",
+  "description": "Phoenix Basketball League Management Platform",
+  "theme_color": "#0f1419",
+  "background_color": "#0f1419",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

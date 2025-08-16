@@ -52,8 +52,8 @@ export class AuditController {
       entityId: query.entityId,
       startDate: query.startDate ? new Date(query.startDate) : undefined,
       endDate: query.endDate ? new Date(query.endDate) : undefined,
-      limit: Math.min(parseInt(query.limit) || 50, 1000),
-      offset: parseInt(query.offset) || 0,
+      limit: Math.min(parseInt(query.limit as string) || 50, 1000),
+      offset: parseInt(query.offset as string) || 0,
     };
 
     // If not admin, restrict to user's organization
@@ -77,7 +77,7 @@ export class AuditController {
     // Validate access to entity
     // This would check if the user has permission to view this entity's history
     
-    const parsedLimit = Math.min(parseInt(limit) || 50, 200);
+    const parsedLimit = Math.min(parseInt(limit as string) || 50, 200);
     return this.auditService.getEntityHistory(entityType, entityId, parsedLimit);
   }
 
@@ -92,8 +92,8 @@ export class AuditController {
   ): Promise<{ logs: AuditLog[]; total: number }> {
     const filter: AuditLogFilter = {
       // userId: user.id,
-      limit: Math.min(parseInt(limit) || 50, 200),
-      offset: parseInt(offset) || 0,
+      limit: Math.min(parseInt(limit as string) || 50, 200),
+      offset: parseInt(offset as string) || 0,
     };
 
     return this.auditService.findLogs(filter);

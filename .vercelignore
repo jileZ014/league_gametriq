@@ -1,0 +1,103 @@
+# Dependencies
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.local
+
+# Build artifacts
+apps/web/.next
+apps/api/dist
+apps/mobile/dist
+build/
+out/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+.pw-user/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Documentation (exclude from production)
+*.md
+docs/
+README.md
+CHANGELOG.md
+
+# Database
+*.sqlite
+*.db
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Backup files
+*.backup
+*.bak
+*.swp
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Storybook
+.storybook/
+storybook-static/
+
+# TypeScript
+*.tsbuildinfo
+
+# Analytics and monitoring
+.vercel/
+.netlify/
+
+# Basketball MVP standalone files
+basketball-mvp/
+*.html

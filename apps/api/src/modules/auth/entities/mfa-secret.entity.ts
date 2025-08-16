@@ -27,6 +27,12 @@ export class MfaSecret {
   @Column({ name: 'backup_codes', type: 'json' })
   backupCodes: string[];
 
+  @Column({ name: 'mfa_method', default: 'totp' })
+  mfaMethod: string;
+
+  @Column({ name: 'is_minor_account', default: false })
+  isMinorAccount: boolean;
+
   @Column({ name: 'recovery_email', nullable: true })
   recoveryEmail: string;
 

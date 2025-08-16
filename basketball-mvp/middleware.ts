@@ -1,0 +1,7 @@
+// Middleware disabled for now to fix infinite loop issues
+// import { NextResponse } from 'next/server'
+// import type { NextRequest } from 'next/server'
+
+// export function middleware(request: NextRequest) {
+//   return NextResponse.next()
+// }

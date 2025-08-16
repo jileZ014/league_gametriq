@@ -6,34 +6,9 @@ import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-// Entity interfaces for Connect accounts
-interface ConnectedAccount {
-  id: string;
-  userId: string;
-  stripeAccountId: string;
-  type: 'express' | 'standard' | 'custom';
-  accountType: 'referee' | 'league' | 'venue';
-  status: 'pending' | 'restricted' | 'enabled' | 'disabled';
-  chargesEnabled: boolean;
-  payoutsEnabled: boolean;
-  capabilities: Record<string, any>;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface Transfer {
-  id: string;
-  paymentId: string;
-  destinationAccountId: string;
-  amount: number;
-  currency: string;
-  transferId: string;
-  status: 'pending' | 'paid' | 'failed' | 'canceled' | 'reversed';
-  description: string;
-  metadata: Record<string, any>;
-  createdAt: Date;
-}
+// Import actual entities
+import { ConnectedAccount } from './entities/connected-account.entity';
+import { Transfer } from './entities/transfer.entity';
 
 @Injectable()
 export class StripeConnectService {
@@ -101,7 +76,7 @@ export class StripeConnectService {
 
     try {
       // Create Express account for simplified onboarding
-      const account = await this.stripeService['stripe'].accounts.create({
+      const account = await this.stripeService.getStripeInstance().accounts.create({
         type: 'express',
         country: 'US',
         email,
@@ -179,7 +154,7 @@ export class StripeConnectService {
     const { accountId, refreshUrl, returnUrl, type = 'account_onboarding' } = params;
 
     try {
-      const accountLink = await this.stripeService['stripe'].accountLinks.create({
+      const accountLink = await this.stripeService.getStripeInstance().accountLinks.create({
         account: accountId,
         refresh_url: refreshUrl,
         return_url: returnUrl,
@@ -234,7 +209,7 @@ export class StripeConnectService {
     }
 
     try {
-      const paymentIntent = await this.stripeService['stripe'].paymentIntents.create({
+      const paymentIntent = await this.stripeService.getStripeInstance().paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: currency.toLowerCase(),
         application_fee_amount: Math.round(applicationFeeAmount * 100),
@@ -291,7 +266,7 @@ export class StripeConnectService {
     }
 
     try {
-      const transfer = await this.stripeService['stripe'].transfers.create({
+      const transfer = await this.stripeService.getStripeInstance().transfers.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: currency.toLowerCase(),
         destination: destinationAccountId,
@@ -400,7 +375,7 @@ export class StripeConnectService {
     }
 
     try {
-      const stripeAccount = await this.stripeService['stripe'].accounts.retrieve(accountId);
+      const stripeAccount = await this.stripeService.getStripeInstance().accounts.retrieve(accountId);
 
       // Update local account status
       account.chargesEnabled = stripeAccount.charges_enabled;
@@ -477,12 +452,12 @@ export class StripeConnectService {
         await this.handleTransferCreated(event.data.object as Stripe.Transfer);
         break;
       
-      case 'transfer.paid':
-        await this.handleTransferPaid(event.data.object as Stripe.Transfer);
+      case 'transfer.updated':
+        await this.handleTransferUpdated(event.data.object as Stripe.Transfer);
         break;
       
-      case 'transfer.failed':
-        await this.handleTransferFailed(event.data.object as Stripe.Transfer);
+      case 'transfer.reversed':
+        await this.handleTransferReversed(event.data.object as Stripe.Transfer);
         break;
       
       default:
@@ -545,32 +520,40 @@ export class StripeConnectService {
     }
   }
 
-  private async handleTransferPaid(transfer: Stripe.Transfer): Promise<void> {
+  private async handleTransferUpdated(transfer: Stripe.Transfer): Promise<void> {
     const localTransfer = await this.transferRepository.findOne({
       where: { transferId: transfer.id },
     });
 
     if (localTransfer) {
-      localTransfer.status = 'paid';
+      // Update status based on transfer state
+      if (transfer.amount_reversed > 0) {
+        localTransfer.status = 'reversed';
+      } else if (transfer.metadata?.status === 'failed') {
+        localTransfer.status = 'failed';
+      } else {
+        localTransfer.status = 'paid';
+      }
+      
       await this.transferRepository.save(localTransfer);
 
-      this.eventEmitter.emit('payment.transfer.paid', {
+      this.eventEmitter.emit('payment.transfer.updated', {
         transfer: localTransfer,
         stripeTransfer: transfer,
       });
     }
   }
 
-  private async handleTransferFailed(transfer: Stripe.Transfer): Promise<void> {
+  private async handleTransferReversed(transfer: Stripe.Transfer): Promise<void> {
     const localTransfer = await this.transferRepository.findOne({
       where: { transferId: transfer.id },
     });
 
     if (localTransfer) {
-      localTransfer.status = 'failed';
+      localTransfer.status = 'reversed';
       await this.transferRepository.save(localTransfer);
 
-      this.eventEmitter.emit('payment.transfer.failed', {
+      this.eventEmitter.emit('payment.transfer.reversed', {
         transfer: localTransfer,
         stripeTransfer: transfer,
       });

@@ -6,7 +6,7 @@
 
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import * as compression from 'compression';
+import compression from 'compression';
 import { performance } from 'perf_hooks';
 
 @Injectable()
@@ -274,8 +274,8 @@ export class PaginationInterceptor implements NestInterceptor {
           return data;
         }
 
-        const page = parseInt(request.query.page) || 1;
-        const limit = Math.min(parseInt(request.query.limit) || 25, 100); // Max 100 items per page
+        const page = parseInt(request.query.page as string) || 1;
+        const limit = Math.min(parseInt(request.query.limit as string) || 25, 100); // Max 100 items per page
         const offset = (page - 1) * limit;
         
         const paginatedData = data.slice(offset, offset + limit);

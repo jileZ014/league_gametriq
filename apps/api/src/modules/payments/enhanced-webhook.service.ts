@@ -197,8 +197,8 @@ export class EnhancedWebhookService {
       case 'account.updated':
       case 'account.application.deauthorized':
       case 'transfer.created':
-      case 'transfer.paid':
-      case 'transfer.failed':
+      case 'transfer.updated':
+      case 'transfer.reversed':
         await this.stripeConnectService.handleConnectWebhook(event);
         break;
 
@@ -335,9 +335,9 @@ export class EnhancedWebhookService {
 
     // Check for first-time customer
     if (charge.customer) {
-      const customer = await this.stripeService['stripe'].customers.retrieve(charge.customer as string);
+      const customer = await this.stripeService.getStripeInstance().customers.retrieve(charge.customer as string);
       if (customer && !customer.deleted) {
-        const charges = await this.stripeService['stripe'].charges.list({
+        const charges = await this.stripeService.getStripeInstance().charges.list({
           customer: customer.id,
           limit: 2,
         });

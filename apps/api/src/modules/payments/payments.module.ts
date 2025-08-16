@@ -7,7 +7,7 @@ import { StripeService } from './stripe.service';
 import { StripeWebhookHandler } from '../../webhooks/stripe_live';
 import { UsersModule } from '../users/users.module';
 
-// Entity imports (these would be defined in separate entity files)
+// Entity imports
 import { Payment } from './entities/payment.entity';
 import { PaymentLedger } from './entities/payment-ledger.entity';
 import { PaymentAudit } from './entities/payment-audit.entity';
@@ -16,6 +16,16 @@ import { WebhookEvent } from './entities/webhook-event.entity';
 import { Refund } from './entities/refund.entity';
 import { Dispute } from './entities/dispute.entity';
 import { PaymentMethod } from './entities/payment-method.entity';
+import { ConnectedAccount } from './entities/connected-account.entity';
+import { Transfer } from './entities/transfer.entity';
+import { Subscription } from './entities/subscription.entity';
+import { SubscriptionItem } from './entities/subscription-item.entity';
+import { Invoice } from './entities/invoice.entity';
+import { RegistrationOrder } from './entities/registration-order.entity';
+import { OrderItem } from './entities/order-item.entity';
+import { OrderDiscount } from './entities/order-discount.entity';
+import { DiscountCode } from './entities/discount-code.entity';
+import { RegistrationFee } from './entities/registration-fee.entity';
 
 @Module({
   imports: [
@@ -29,6 +39,16 @@ import { PaymentMethod } from './entities/payment-method.entity';
       Refund,
       Dispute,
       PaymentMethod,
+      ConnectedAccount,
+      Transfer,
+      Subscription,
+      SubscriptionItem,
+      Invoice,
+      RegistrationOrder,
+      OrderItem,
+      OrderDiscount,
+      DiscountCode,
+      RegistrationFee,
     ]),
     UsersModule,
   ],

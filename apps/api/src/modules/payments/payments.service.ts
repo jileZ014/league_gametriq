@@ -9,41 +9,10 @@ import { StripeWebhookHandler } from '../../webhooks/stripe_live';
 import { RegistrationService } from '../users/registration.service';
 import { hashIpAddress } from '../../utils/ip_hash';
 
-// Entities
-interface Payment {
-  id: string;
-  userId: string;
-  orderId: string;
-  paymentIntentId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled' | 'refunded';
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface PaymentLedger {
-  id: string;
-  paymentId: string;
-  type: 'charge' | 'refund' | 'dispute' | 'adjustment';
-  amount: number;
-  currency: string;
-  description: string;
-  metadata: Record<string, any>;
-  createdAt: Date;
-}
-
-interface PaymentAudit {
-  id: string;
-  paymentId: string;
-  userId: string;
-  action: string;
-  details: Record<string, any>;
-  ipAddress?: string;
-  userAgent?: string;
-  createdAt: Date;
-}
+// Import actual entities
+import { Payment } from './entities/payment.entity';
+import { PaymentLedger } from './entities/payment-ledger.entity';
+import { PaymentAudit } from './entities/payment-audit.entity';
 
 @Injectable()
 export class PaymentsService {

@@ -45,10 +45,10 @@ export class User {
   password: string;
 
   @Column({ name: 'phone_number', nullable: true })
-  phoneNumber: string;
+  phoneNumber: string | null;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatar: string | null;
 
   @Column({ name: 'mfa_enabled', default: false })
   mfaEnabled: boolean;
@@ -81,43 +81,49 @@ export class User {
 
   // COPPA Compliance: Store only year for minors
   @Column({ type: 'date', name: 'date_of_birth', nullable: true })
-  dateOfBirth: Date;
+  dateOfBirth: Date | null;
 
   // For minors, we only store the year
   @Column({ type: 'integer', name: 'birth_year', nullable: true })
-  birthYear: number;
+  birthYear: number | null;
 
   @Column({ type: 'boolean', name: 'is_minor', default: false })
   isMinor: boolean;
 
   // Parent email for minors
   @Column({ type: 'varchar', length: 255, name: 'parent_email', nullable: true })
-  parentEmail: string;
+  parentEmail: string | null;
 
   // Hashed IP for security
   @Column({ type: 'varchar', length: 64, name: 'registration_ip_hash', nullable: true })
-  registrationIpHash: string;
+  registrationIpHash: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, any> | null;
 
   @Column({ type: 'timestamp', name: 'email_verified_at', nullable: true })
-  emailVerifiedAt: Date;
+  emailVerifiedAt: Date | null;
 
   @Column({ type: 'timestamp', name: 'last_login_at', nullable: true })
-  lastLoginAt: Date;
+  lastLoginAt: Date | null;
 
   @Column({ name: 'password_changed_at', type: 'timestamp', nullable: true })
-  passwordChangedAt: Date;
+  passwordChangedAt: Date | null;
 
   @Column({ name: 'failed_login_attempts', default: 0 })
   failedLoginAttempts: number;
 
   @Column({ name: 'last_failed_login', type: 'timestamp', nullable: true })
-  lastFailedLogin: Date;
+  lastFailedLogin: Date | null;
 
   @Column({ name: 'lockout_until', type: 'timestamp', nullable: true })
-  lockoutUntil: Date;
+  lockoutUntil: Date | null;
+
+  @Column({ name: 'reset_token', type: 'varchar', length: 255, nullable: true })
+  resetToken: string | null;
+
+  @Column({ name: 'reset_token_expiry', type: 'timestamp', nullable: true })
+  resetTokenExpiry: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -126,7 +132,7 @@ export class User {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => Payment, payment => payment.userId)
+  @OneToMany(() => Payment, payment => payment.user)
   payments: Payment[];
 
   @OneToMany(() => ParentalConsent, consent => consent.childUser)

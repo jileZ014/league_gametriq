@@ -4,16 +4,7 @@ import Stripe from 'stripe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { getStripeSecret, getStripeWebhookSecret } from '../../config/secrets';
-
-interface StripeCustomer {
-  id: string;
-  userId: string;
-  customerId: string;
-  email: string;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { StripeCustomer } from './entities/stripe-customer.entity';
 
 @Injectable()
 export class StripeService {
@@ -402,5 +393,10 @@ export class StripeService {
 
   isTestMode(): boolean {
     return this.testMode;
+  }
+
+  // Expose stripe instance for services that need direct access
+  getStripeInstance(): Stripe {
+    return this.stripe;
   }
 }

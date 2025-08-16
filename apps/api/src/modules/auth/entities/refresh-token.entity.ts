@@ -27,7 +27,7 @@ export class RefreshToken {
   token: string;
 
   @Column({ name: 'session_id', nullable: true })
-  sessionId: string;
+  sessionId: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;
@@ -36,7 +36,7 @@ export class RefreshToken {
   revoked: boolean;
 
   @Column({ name: 'revoked_at', type: 'timestamp', nullable: true })
-  revokedAt: Date;
+  revokedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

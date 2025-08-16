@@ -5,46 +5,10 @@ import { StripeService } from './stripe.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Stripe from 'stripe';
 
-// Entity interfaces for subscriptions
-interface Subscription {
-  id: string;
-  userId: string;
-  stripeSubscriptionId: string;
-  priceId: string;
-  status: 'active' | 'past_due' | 'unpaid' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing';
-  planType: 'monthly' | 'yearly' | 'seasonal';
-  planName: string;
-  amount: number;
-  currency: string;
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  cancelAtPeriodEnd: boolean;
-  trialEnd?: Date;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface SubscriptionItem {
-  id: string;
-  subscriptionId: string;
-  priceId: string;
-  quantity: number;
-  metadata: Record<string, any>;
-}
-
-interface Invoice {
-  id: string;
-  subscriptionId: string;
-  stripeInvoiceId: string;
-  amount: number;
-  currency: string;
-  status: 'draft' | 'open' | 'paid' | 'uncollectible' | 'void';
-  dueDate: Date;
-  paidAt?: Date;
-  metadata: Record<string, any>;
-  createdAt: Date;
-}
+// Import actual entities
+import { Subscription } from './entities/subscription.entity';
+import { SubscriptionItem } from './entities/subscription-item.entity';
+import { Invoice } from './entities/invoice.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -93,7 +57,7 @@ export class SubscriptionService {
     try {
       for (const plan of plans) {
         // Create product
-        const product = await this.stripeService['stripe'].products.create({
+        const product = await this.stripeService.getStripeInstance().products.create({
           id: plan.id,
           name: plan.name,
           description: `Legacy Youth Sports - ${plan.name}`,
@@ -104,7 +68,7 @@ export class SubscriptionService {
         });
 
         // Create price
-        await this.stripeService['stripe'].prices.create({
+        await this.stripeService.getStripeInstance().prices.create({
           id: `price_${plan.id}`,
           product: product.id,
           unit_amount: plan.amount,
@@ -165,7 +129,7 @@ export class SubscriptionService {
       }
 
       // Create subscription
-      const subscription = await this.stripeService['stripe'].subscriptions.create({
+      const subscription = await this.stripeService.getStripeInstance().subscriptions.create({
         customer: customer.id,
         items: [{ price: priceId }],
         payment_behavior: 'default_incomplete',
@@ -184,7 +148,7 @@ export class SubscriptionService {
       });
 
       // Get price details
-      const price = await this.stripeService['stripe'].prices.retrieve(priceId);
+      const price = await this.stripeService.getStripeInstance().prices.retrieve(priceId);
 
       // Save subscription record
       const subscriptionRecord = await this.subscriptionRepository.save({
@@ -243,11 +207,11 @@ export class SubscriptionService {
     }
 
     try {
-      const stripeSubscription = await this.stripeService['stripe'].subscriptions.retrieve(subscriptionId);
+      const stripeSubscription = await this.stripeService.getStripeInstance().subscriptions.retrieve(subscriptionId);
 
       if (newPriceId) {
         // Update subscription item with new price
-        await this.stripeService['stripe'].subscriptions.update(subscriptionId, {
+        await this.stripeService.getStripeInstance().subscriptions.update(subscriptionId, {
           items: [{
             id: stripeSubscription.items.data[0].id,
             price: newPriceId,
@@ -261,7 +225,7 @@ export class SubscriptionService {
         });
 
         // Update local record
-        const newPrice = await this.stripeService['stripe'].prices.retrieve(newPriceId);
+        const newPrice = await this.stripeService.getStripeInstance().prices.retrieve(newPriceId);
         subscription.priceId = newPriceId;
         subscription.planType = this.getPlanType(newPrice);
         subscription.planName = newPrice.nickname || `${newPrice.recurring?.interval} plan`;
@@ -314,7 +278,7 @@ export class SubscriptionService {
 
       if (cancelAtPeriodEnd) {
         // Schedule cancellation at period end
-        stripeSubscription = await this.stripeService['stripe'].subscriptions.update(subscriptionId, {
+        stripeSubscription = await this.stripeService.getStripeInstance().subscriptions.update(subscriptionId, {
           cancel_at_period_end: true,
           metadata: {
             ...subscription.metadata,
@@ -324,7 +288,7 @@ export class SubscriptionService {
         });
       } else {
         // Cancel immediately
-        stripeSubscription = await this.stripeService['stripe'].subscriptions.cancel(subscriptionId, {
+        stripeSubscription = await this.stripeService.getStripeInstance().subscriptions.cancel(subscriptionId, {
           invoice_now: true,
           prorate: true,
         });
@@ -375,7 +339,7 @@ export class SubscriptionService {
 
     try {
       // Reactivate subscription
-      const stripeSubscription = await this.stripeService['stripe'].subscriptions.update(subscriptionId, {
+      const stripeSubscription = await this.stripeService.getStripeInstance().subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
         metadata: {
           ...subscription.metadata,

@@ -258,8 +258,8 @@ export class ReportsController {
     @Query('templateId') templateId?: string,
   ): Promise<{ reports: ReportHistory[]; total: number }> {
     return await this.reportsService.getReportHistory(organizationId, {
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
+      limit: limit ? parseInt(limit as string) : undefined,
+      offset: offset ? parseInt(offset as string) : undefined,
       status,
       templateId,
     });

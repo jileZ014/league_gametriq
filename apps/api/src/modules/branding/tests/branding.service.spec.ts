@@ -6,7 +6,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs/promises';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 import { BrandingService } from '../branding.service';
 import { Branding, BrandingAsset, BrandingAudit } from '../branding.entity';

@@ -9,6 +9,9 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
+import { TournamentTeam } from './tournament-team.entity';
+import { TournamentMatch } from './tournament-match.entity';
+import { TournamentCourt } from './tournament-court.entity';
 
 export enum TournamentFormat {
   SINGLE_ELIMINATION = 'single_elimination',
@@ -241,8 +244,3 @@ export class Tournament {
   @OneToMany(() => TournamentCourt, court => court.tournament)
   courts: TournamentCourt[];
 }
-
-// Import these from their respective files
-import { TournamentTeam } from './tournament-team.entity';
-import { TournamentMatch } from './tournament-match.entity';
-import { TournamentCourt } from './tournament-court.entity';

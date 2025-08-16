@@ -198,19 +198,33 @@ export const CachePerformanceConfig = {
 } as const;
 
 /**
+ * Safe environment variable parsing utilities
+ */
+const parseInt10 = (value: string | undefined, defaultValue: number): number => {
+  if (!value || value.trim() === '') return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
+
+const parseBoolean = (value: string | undefined, defaultValue: boolean = false): boolean => {
+  if (!value || value.trim() === '') return defaultValue;
+  return value.toLowerCase() === 'true';
+};
+
+/**
  * Redis connection configuration for high availability
  */
 export const RedisConfig = {
   // Connection settings
   connection: {
     host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD,
-    db: parseInt(process.env.REDIS_DB || '0'),
+    port: parseInt10(process.env.REDIS_PORT, 6379),
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: parseInt10(process.env.REDIS_DB, 0),
     
     // Connection pool settings for concurrent users
     family: 4, // IPv4
-    keepAlive: true,
+    keepAlive: 30000, // Keep-alive interval in milliseconds (30 seconds)
     connectTimeout: 10000,
     lazyConnect: true,
     maxRetriesPerRequest: 3,
@@ -223,11 +237,11 @@ export const RedisConfig = {
   
   // Cluster configuration for production
   cluster: {
-    enabled: process.env.REDIS_CLUSTER_ENABLED === 'true',
+    enabled: parseBoolean(process.env.REDIS_CLUSTER_ENABLED, false),
     nodes: process.env.REDIS_CLUSTER_NODES?.split(',') || [],
     options: {
       redisOptions: {
-        password: process.env.REDIS_PASSWORD
+        password: process.env.REDIS_PASSWORD || undefined
       },
       enableOfflineQueue: false,
       retryDelayOnFailover: 100,
@@ -237,10 +251,10 @@ export const RedisConfig = {
   
   // Sentinel configuration for failover
   sentinel: {
-    enabled: process.env.REDIS_SENTINEL_ENABLED === 'true',
+    enabled: parseBoolean(process.env.REDIS_SENTINEL_ENABLED, false),
     sentinels: process.env.REDIS_SENTINELS?.split(',').map(s => {
       const [host, port] = s.split(':');
-      return { host, port: parseInt(port) };
+      return { host, port: parseInt10(port, 26379) };
     }) || [],
     name: process.env.REDIS_SENTINEL_NAME || 'mymaster'
   }

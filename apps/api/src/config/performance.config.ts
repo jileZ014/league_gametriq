@@ -6,16 +6,30 @@
 
 import { registerAs } from '@nestjs/config';
 
+/**
+ * Safe environment variable parsing utilities
+ */
+const parseInt10 = (value: string | undefined, defaultValue: number): number => {
+  if (!value || value.trim() === '') return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
+
+const parseBoolean = (value: string | undefined, defaultValue: boolean = false): boolean => {
+  if (!value || value.trim() === '') return defaultValue;
+  return value.toLowerCase() === 'true';
+};
+
 export default registerAs('performance', () => ({
   // Database Connection Pooling Configuration
   database: {
     // Connection pool settings for high concurrency
     connectionPool: {
-      max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum connections
-      min: parseInt(process.env.DB_POOL_MIN || '2'),  // Minimum connections
-      idle: parseInt(process.env.DB_POOL_IDLE || '10000'), // 10 seconds idle timeout
-      acquire: parseInt(process.env.DB_POOL_ACQUIRE || '30000'), // 30 seconds acquire timeout
-      evict: parseInt(process.env.DB_POOL_EVICT || '60000'), // 60 seconds eviction timeout
+      max: parseInt10(process.env.DB_POOL_MAX, 20), // Maximum connections
+      min: parseInt10(process.env.DB_POOL_MIN, 2),  // Minimum connections
+      idle: parseInt10(process.env.DB_POOL_IDLE, 10000), // 10 seconds idle timeout
+      acquire: parseInt10(process.env.DB_POOL_ACQUIRE, 30000), // 30 seconds acquire timeout
+      evict: parseInt10(process.env.DB_POOL_EVICT, 60000), // 60 seconds eviction timeout
       handleDisconnects: true,
       validate: true
     },
@@ -46,7 +60,7 @@ export default registerAs('performance', () => ({
 
     // Read replica configuration for load distribution
     readReplicas: {
-      enabled: process.env.DB_READ_REPLICAS_ENABLED === 'true',
+      enabled: parseBoolean(process.env.DB_READ_REPLICAS_ENABLED, false),
       hosts: process.env.DB_READ_REPLICA_HOSTS?.split(',') || [],
       loadBalancing: 'round-robin', // or 'random', 'least-connections'
       maxLag: 1000 // Maximum replication lag in ms
@@ -81,7 +95,7 @@ export default registerAs('performance', () => ({
       
       // Compression for large values
       compression: {
-        enabled: process.env.REDIS_COMPRESSION === 'true',
+        enabled: parseBoolean(process.env.REDIS_COMPRESSION, false),
         threshold: 1024, // Compress values larger than 1KB
         algorithm: 'gzip'
       },
@@ -96,7 +110,7 @@ export default registerAs('performance', () => ({
 
     // Cluster configuration for high availability
     cluster: {
-      enabled: process.env.REDIS_CLUSTER_ENABLED === 'true',
+      enabled: parseBoolean(process.env.REDIS_CLUSTER_ENABLED, false),
       nodes: process.env.REDIS_CLUSTER_NODES?.split(',') || [],
       redisOptions: {
         password: process.env.REDIS_PASSWORD,
@@ -222,7 +236,7 @@ export default registerAs('performance', () => ({
     tournament: {
       // During tournament events, increase limits
       tournamentMode: {
-        enabled: process.env.TOURNAMENT_MODE === 'true',
+        enabled: parseBoolean(process.env.TOURNAMENT_MODE, false),
         multiplier: 2, // Double the normal rate limits
         activeHours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], // 9 AM - 8 PM
         weekends: true // Apply tournament mode on weekends
@@ -233,8 +247,8 @@ export default registerAs('performance', () => ({
   // WebSocket Connection Management
   websocket: {
     // Connection limits for real-time features
-    maxConnections: parseInt(process.env.WS_MAX_CONNECTIONS || '2000'),
-    connectionTimeout: parseInt(process.env.WS_CONNECTION_TIMEOUT || '30000'),
+    maxConnections: parseInt10(process.env.WS_MAX_CONNECTIONS, 2000),
+    connectionTimeout: parseInt10(process.env.WS_CONNECTION_TIMEOUT, 30000),
     
     // Message rate limiting
     messageRateLimit: {
@@ -332,9 +346,9 @@ export default registerAs('performance', () => ({
   scaling: {
     // Auto-scaling configuration
     autoScaling: {
-      enabled: process.env.AUTO_SCALING_ENABLED === 'true',
-      minInstances: parseInt(process.env.MIN_INSTANCES || '2'),
-      maxInstances: parseInt(process.env.MAX_INSTANCES || '10'),
+      enabled: parseBoolean(process.env.AUTO_SCALING_ENABLED, false),
+      minInstances: parseInt10(process.env.MIN_INSTANCES, 2),
+      maxInstances: parseInt10(process.env.MAX_INSTANCES, 10),
       
       // Scaling triggers
       triggers: {

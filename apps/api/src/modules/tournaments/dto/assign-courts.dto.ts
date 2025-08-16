@@ -1,31 +1,42 @@
-import { IsObject, IsOptional, IsBoolean, IsArray, IsString } from 'class-validator';
+import { IsObject, IsOptional, IsBoolean, ValidateNested, Type } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class AssignCourtsDto {
+class CourtAssignmentCriteria {
+  @ApiProperty({ required: false, description: 'Match importance mapping (matchId -> importance 0-10)' })
   @IsOptional()
   @IsObject()
-  criteria?: {
-    @IsOptional()
-    @IsObject()
-    matchImportance?: Record<string, number>; // matchId -> importance (0-10)
+  matchImportance?: Record<string, number>;
 
-    @IsOptional()
-    @IsObject()
-    teamPreferences?: Record<string, string[]>; // teamId -> preferred courtIds
+  @ApiProperty({ required: false, description: 'Team court preferences (teamId -> preferred courtIds)' })
+  @IsOptional()
+  @IsObject()
+  teamPreferences?: Record<string, string[]>;
 
-    @IsOptional()
-    @IsObject()
-    courtReservations?: Record<string, string[]>; // courtId -> reserved for matchIds
+  @ApiProperty({ required: false, description: 'Court reservations (courtId -> reserved for matchIds)' })
+  @IsOptional()
+  @IsObject()
+  courtReservations?: Record<string, string[]>;
 
-    @IsOptional()
-    @IsBoolean()
-    minimizeTravel?: boolean; // For multi-venue tournaments
+  @ApiProperty({ required: false, description: 'Minimize travel for multi-venue tournaments' })
+  @IsOptional()
+  @IsBoolean()
+  minimizeTravel?: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    balanceLoad?: boolean; // Distribute matches evenly
+  @ApiProperty({ required: false, description: 'Distribute matches evenly across courts' })
+  @IsOptional()
+  @IsBoolean()
+  balanceLoad?: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    preserveContinuity?: boolean; // Keep teams on same court when possible
-  };
+  @ApiProperty({ required: false, description: 'Keep teams on same court when possible' })
+  @IsOptional()
+  @IsBoolean()
+  preserveContinuity?: boolean;
+}
+
+export class AssignCourtsDto {
+  @ApiProperty({ type: CourtAssignmentCriteria, required: false })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CourtAssignmentCriteria)
+  criteria?: CourtAssignmentCriteria;
 }
