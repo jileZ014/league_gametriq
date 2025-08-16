@@ -5,8 +5,8 @@ import type { Database, UserRole } from '@/lib/supabase/types'
 
 // TEMPORARY HARDCODED VALUES FOR UAT DEPLOYMENT
 // TODO: After UAT, investigate why process.env variables aren't loading in Edge Runtime
-const SUPABASE_URL = 'https://mqfpbqvkhqjivqeqaclj.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnBicXZraHFqaXZxZXFhY2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgxNjU1NzksImV4cCI6MjA0Mzc0MTU3OX0.pYXQiOjE3NTUxMjAxNjAsImV4cCI6MjA3MDg2NDE2MH0.zMn6_xI5RMKE0DwYDVsInpuSqI47eXunQnGMxvU1RILtJuUng'
+const SUPABASE_URL = 'https://mgfpbqvkhqjlvgeqaclj.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZnBicXZraHFqbHZnZXFhY2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMDIzNDUsImV4cCI6MjA0OTg3ODM0NX0.G2v1cYDdpgXCJ9cJ_rtHJJfbKLEr0z6FCd3gRCqzSrc'
 
 // Define protected routes and their required roles
 const protectedRoutes: Record<string, UserRole[]> = {

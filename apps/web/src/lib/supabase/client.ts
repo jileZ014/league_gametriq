@@ -1,17 +1,18 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Database } from './types'
 
 // TEMPORARY HARDCODED VALUES FOR UAT DEPLOYMENT
 // These are your actual values from Vercel environment variables
 // TODO: After UAT, investigate why process.env variables aren't loading
-const supabaseUrl = 'https://mqfpbqvkhqjivqeqaclj.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnBicXZraHFqaXZxZXFhY2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgxNjU1NzksImV4cCI6MjA0Mzc0MTU3OX0.pYXQiOjE3NTUxMjAxNjAsImV4cCI6MjA3MDg2NDE2MH0.zMn6_xI5RMKE0DwYDVsInpuSqI47eXunQnGMxvU1RILtJuUng'
+const supabaseUrl = 'https://mgfpbqvkhqjlvgeqaclj.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZnBicXZraHFqbHZnZXFhY2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMDIzNDUsImV4cCI6MjA0OTg3ODM0NX0.G2v1cYDdpgXCJ9cJ_rtHJJfbKLEr0z6FCd3gRCqzSrc'
 
 // Debug logging - remove after confirming it works
 if (typeof window !== 'undefined') {
   console.log('Supabase Client Initializing with:', {
     url: supabaseUrl,
-    keyPrefix: supabaseAnonKey.substring(0, 20) + '...'
+    keyPrefix: supabaseAnonKey.substring(0, 20) + '...',
+    keyLength: supabaseAnonKey.length
   })
 }
 
@@ -25,7 +26,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create the Supabase client with type safety
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -35,3 +36,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 
 // Export for use in other components
 export type SupabaseClient = typeof supabase
+
+// Export createClient function for auth pages
+export const createClient = () => supabase
