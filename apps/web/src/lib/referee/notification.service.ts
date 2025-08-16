@@ -556,7 +556,7 @@ You have been assigned to officiate:
 - Time: {{game.time}}
 - Venue: {{venue.name}}
 - Role: {{assignment.role}}
-- Pay: ${{assignment.pay}}
+- Pay: $${assignment.pay}
 
 Please confirm within 24 hours.
     `.trim();

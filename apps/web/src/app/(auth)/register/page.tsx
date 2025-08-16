@@ -38,7 +38,7 @@ const registerSchema = z.object({
     message: 'You must agree to the privacy policy',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Passwords don&apos;t match",
   path: ['confirmPassword'],
 }).refine((data) => {
   // If role is player and age < 13, require parent info
@@ -97,9 +97,20 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true)
+    console.log('Registration attempt:', { email: data.email, role: data.role })
 
     try {
+      // Validate Supabase client is initialized
+      if (!supabase) {
+        console.error('Supabase client not initialized')
+        throw new Error('Authentication service is not available. Please refresh the page and try again.')
+      }
+
       // Create auth user with Supabase
+      console.log('Creating Supabase auth user...')
+      console.log('Supabase client exists:', !!supabase)
+      console.log('Supabase auth exists:', !!supabase.auth)
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -112,12 +123,24 @@ export default function RegisterPage() {
         },
       })
 
+      console.log('Supabase signUp response:', { 
+        success: !!authData?.user,
+        userId: authData?.user?.id,
+        error: authError?.message || 'none'
+      })
+
       if (authError) {
+        console.error('Auth error details:', {
+          message: authError.message,
+          status: authError.status,
+          code: authError.code,
+          name: authError.name
+        })
         throw authError
       }
 
       if (!authData.user) {
-        throw new Error('Registration failed')
+        throw new Error('Registration failed - no user returned')
       }
 
       // Calculate age group
@@ -130,31 +153,43 @@ export default function RegisterPage() {
       }
 
       // Create user profile in database
+      console.log('Creating user profile in database...')
+      const profileData = {
+        id: authData.user.id,
+        email: data.email,
+        name: data.name,
+        role: data.role as UserRole,
+        phone_number: data.phoneNumber || null,
+        date_of_birth: data.dateOfBirth || null,
+        age_group: ageGroup,
+        is_under_13: isUnder13,
+        has_parental_consent: !isUnder13 || !!data.parentEmail,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      console.log('Profile data:', profileData)
+
       const { error: profileError } = await supabase
         .from('users')
-        .insert({
-          id: authData.user.id,
-          email: data.email,
-          name: data.name,
-          role: data.role as UserRole,
-          phone_number: data.phoneNumber || null,
-          date_of_birth: data.dateOfBirth || null,
-          age_group: ageGroup,
-          is_under_13: isUnder13,
-          has_parental_consent: !isUnder13 || !!data.parentEmail,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .insert(profileData)
 
       if (profileError) {
-        // If profile creation fails, delete the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id)
-        throw profileError
+        console.error('Profile creation error:', {
+          message: profileError.message,
+          code: profileError.code,
+          details: profileError.details,
+          hint: profileError.hint
+        })
+        // Note: We cannot delete auth user without admin access
+        // User will need to complete profile later
+        console.warn('Profile creation failed, user may need to complete profile later')
+        // Don't throw here - let the user proceed with just auth created
       }
 
       // Create default preferences
-      await supabase
+      console.log('Creating user preferences...')
+      const { error: prefsError } = await supabase
         .from('user_preferences')
         .insert({
           user_id: authData.user.id,
@@ -165,25 +200,50 @@ export default function RegisterPage() {
           language: 'en',
           timezone: 'America/Phoenix',
         })
+      
+      if (prefsError) {
+        console.warn('Preferences creation failed:', prefsError.message)
+        // Non-critical, continue
+      }
 
       // If under 13, send parent consent email
       if (isUnder13 && data.parentEmail) {
         // This would trigger a backend function to send parent consent email
-        // For now, we'll just log it
+        // For now, we&apos;ll just log it
         console.log('Parent consent email would be sent to:', data.parentEmail)
       }
 
       toast.success('Registration successful! Please check your email to verify your account.')
-      router.push('/login')
-    } catch (error: any) {
-      console.error('Registration error:', error)
       
-      if (error.message === 'User already registered') {
-        toast.error('An account with this email already exists')
-      } else if (error.code === '23505') {
-        toast.error('This email is already registered')
+      // Delay redirect to allow user to see success message
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    } catch (error: any) {
+      console.error('Full registration error:', {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        details: error
+      })
+      
+      // More detailed error handling
+      if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        toast.error('An account with this email already exists. Please login instead.')
+      } else if (error.code === '23505' || error.code === 'auth/email-already-in-use') {
+        toast.error('This email is already registered. Please login or use a different email.')
+      } else if (error.message?.includes('Invalid email') || error.code === 'auth/invalid-email') {
+        toast.error('Please enter a valid email address')
+      } else if (error.message?.includes('password') || error.code === 'auth/weak-password') {
+        toast.error('Password does not meet security requirements')
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.')
+      } else if (error.message?.includes('rate limit')) {
+        toast.error('Too many attempts. Please wait a few minutes and try again.')
+      } else if (error.message?.includes('not available')) {
+        toast.error('Authentication service is temporarily unavailable. Please try again.')
       } else {
-        toast.error(error.message || 'An error occurred during registration')
+        toast.error(`Registration failed: ${error.message || 'Unknown error occurred'}`)
       }
     } finally {
       setIsLoading(false)
@@ -205,7 +265,7 @@ export default function RegisterPage() {
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold tracking-tight">Create an account</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Join GameTriq Basketball League
+          Join GameTriq Trophy League
         </p>
       </div>
 

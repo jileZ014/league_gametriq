@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
-  Basketball,
+  Trophy,
   Play,
   Pause,
   Square,
@@ -33,7 +33,6 @@ import {
   Shield,
   Target,
   Activity,
-  Trophy,
   Star,
   Eye,
   Volume2,
@@ -75,7 +74,7 @@ interface GameAction {
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center space-y-4">
-      <Basketball className="h-12 w-12 mx-auto text-basketball-orange-500 animate-spin" />
+      <Trophy className="h-12 w-12 mx-auto text-basketball-orange-500 animate-spin" />
       <p className="text-muted-foreground">Loading game...</p>
     </div>
   </div>
@@ -415,7 +414,7 @@ export default function LiveScoringPage({ params }: GamePageProps) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
-          <Basketball className="h-12 w-12 mx-auto text-gray-400" />
+          <Trophy className="h-12 w-12 mx-auto text-gray-400" />
           <h1 className="text-xl font-semibold">Game Not Found</h1>
           <p className="text-muted-foreground">The game you're looking for doesn't exist.</p>
           <Button onClick={() => router.push('/dashboard')}>
@@ -433,7 +432,7 @@ export default function LiveScoringPage({ params }: GamePageProps) {
         <div className="text-center space-y-4">
           <Shield className="h-12 w-12 mx-auto text-red-500" />
           <h1 className="text-xl font-semibold">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have permission to score this game.</p>
+          <p className="text-muted-foreground">You don&apos;t have permission to score this game.</p>
           <Button onClick={() => router.push('/dashboard')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard

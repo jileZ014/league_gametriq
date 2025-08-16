@@ -268,7 +268,7 @@ export default function SpectatorView() {
     <div className="container mx-auto p-4 max-w-7xl">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Phoenix Flight Basketball</h1>
+        <h1 className="text-3xl font-bold mb-2">Phoenix Flight Trophy</h1>
         <p className="text-muted-foreground">Follow live games and track your favorite teams</p>
       </div>
 

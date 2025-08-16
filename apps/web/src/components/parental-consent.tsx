@@ -105,7 +105,7 @@ GameTriq Children's Privacy Policy
 
 Last Updated: ${new Date().toLocaleDateString()}
 
-This policy explains how we collect, use, and protect your child's information in compliance with COPPA.
+This policy explains how we collect, use, and protect your child&apos;s information in compliance with COPPA.
 
 INFORMATION WE COLLECT:
 - Child's name and age
@@ -126,9 +126,9 @@ DATA PROTECTION:
 - Regular security audits and updates
 
 YOUR RIGHTS:
-- Request to see your child's information
+- Request to see your child&apos;s information
 - Request corrections or updates
-- Request deletion of your child's account
+- Request deletion of your child&apos;s account
 - Withdraw consent at any time
 
 CONTACT US:
@@ -171,14 +171,14 @@ Phone: (555) 123-4567
                   <span>About GameTriq for Young Players</span>
                 </CardTitle>
                 <CardDescription>
-                  Understanding how we protect your child's privacy and safety
+                  Understanding how we protect your child&apos;s privacy and safety
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
                     GameTriq is designed to provide a safe, fun, and educational basketball experience for young players. 
-                    We take children's privacy very seriously and comply with all COPPA requirements.
+                    We take children&apos;s privacy very seriously and comply with all COPPA requirements.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,7 +197,7 @@ Phone: (555) 123-4567
                     <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
                     <div className="text-sm text-blue-700">
                       <p className="font-medium mb-1">Your Control</p>
-                      <p>You maintain complete control over your child's information and can revoke consent at any time.</p>
+                      <p>You maintain complete control over your child&apos;s information and can revoke consent at any time.</p>
                     </div>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ Phone: (555) 123-4567
                   <span>Privacy Policy & Terms Review</span>
                 </CardTitle>
                 <CardDescription>
-                  Please review our policies that govern how we handle your child's information
+                  Please review our policies that govern how we handle your child&apos;s information
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -236,7 +236,7 @@ Phone: (555) 123-4567
                       <li>• Data is encrypted and stored securely with limited access</li>
                       <li>• Information is shared only with coaches and authorized league personnel</li>
                       <li>• You can request data deletion or account closure at any time</li>
-                      <li>• We never use children's data for marketing or advertising</li>
+                      <li>• We never use children&apos;s data for marketing or advertising</li>
                     </ul>
                   </div>
 
@@ -338,7 +338,7 @@ Phone: (555) 123-4567
                         onCheckedChange={(checked) => setUnderstandRights(checked as boolean)}
                       />
                       <Label htmlFor="understand-rights" className="text-sm leading-relaxed">
-                        I understand my rights to review, modify, or delete my child's information at any time.
+                        I understand my rights to review, modify, or delete my child&apos;s information at any time.
                       </Label>
                     </div>
 
@@ -349,7 +349,7 @@ Phone: (555) 123-4567
                         onCheckedChange={(checked) => setAllowCommunication(checked as boolean)}
                       />
                       <Label htmlFor="allow-communication" className="text-sm leading-relaxed">
-                        <strong>Optional:</strong> I allow GameTriq to send me updates about my child's basketball activities via email.
+                        <strong>Optional:</strong> I allow GameTriq to send me updates about my child&apos;s basketball activities via email.
                       </Label>
                     </div>
                   </div>
@@ -487,7 +487,7 @@ Phone: (555) 123-4567
                   <p className="font-medium mb-1">What happens next:</p>
                   <ul className="text-muted-foreground space-y-1">
                     <li>• Your child can now create their player profile</li>
-                    <li>• You'll receive a confirmation email with account details</li>
+                    <li>• You&apos;ll receive a confirmation email with account details</li>
                     <li>• You can manage consent settings anytime in your parent dashboard</li>
                   </ul>
                 </div>

@@ -20,7 +20,7 @@ const resetPasswordSchema = z.object({
     .regex(/[!@#$%^&*]/, 'Password must contain at least one special character'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Passwords don&apos;t match",
   path: ['confirmPassword'],
 })
 

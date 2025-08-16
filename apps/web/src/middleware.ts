@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import type { Database, UserRole } from '@/lib/supabase/types'
+import { extractUserRole, getDashboardUrl, hasAnyRole } from '@/lib/types/database-helpers'
 
 // TEMPORARY HARDCODED VALUES FOR UAT DEPLOYMENT
 // TODO: After UAT, investigate why process.env variables aren't loading in Edge Runtime
@@ -102,8 +103,9 @@ export async function middleware(request: NextRequest) {
         .eq('id', session.user.id)
         .single()
 
-      if (userData) {
-        const dashboardUrl = new URL(`/dashboard/${userData.role}`, request.url)
+      const userRole = extractUserRole(userData)
+      if (userRole) {
+        const dashboardUrl = new URL(getDashboardUrl(userRole), request.url)
         return NextResponse.redirect(dashboardUrl)
       }
     }
@@ -143,10 +145,17 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user has required role
+    const userRole = extractUserRole(userData)
+    if (!userRole) {
+      // User exists but has no role - redirect to complete profile
+      const completeProfileUrl = new URL('/register/complete', request.url)
+      return NextResponse.redirect(completeProfileUrl)
+    }
+
     const requiredRoles = protectedRoutes[protectedRoute]
-    if (!requiredRoles.includes(userData.role)) {
+    if (!hasAnyRole({ role: userRole }, requiredRoles)) {
       // User doesn't have permission - redirect to their dashboard
-      const dashboardUrl = new URL(`/dashboard/${userData.role}`, request.url)
+      const dashboardUrl = new URL(getDashboardUrl(userRole), request.url)
       return NextResponse.redirect(dashboardUrl)
     }
   }
@@ -171,12 +180,20 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(completeProfileUrl)
     }
 
+    // Extract the user's role from database
+    const userRole = extractUserRole(userData)
+    if (!userRole) {
+      // User exists but has no role - redirect to complete profile
+      const completeProfileUrl = new URL('/register/complete', request.url)
+      return NextResponse.redirect(completeProfileUrl)
+    }
+
     // Extract the role from the URL
     const urlRole = pathname.split('/')[2] as UserRole
 
     // If the URL role doesn't match the user's role, redirect to their correct dashboard
-    if (urlRole && urlRole !== userData.role) {
-      const correctDashboardUrl = new URL(`/dashboard/${userData.role}`, request.url)
+    if (urlRole && urlRole !== userRole) {
+      const correctDashboardUrl = new URL(getDashboardUrl(userRole), request.url)
       return NextResponse.redirect(correctDashboardUrl)
     }
   }

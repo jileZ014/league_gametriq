@@ -207,8 +207,7 @@ export default function TournamentsPage() {
             {(user.role === 'league-admin' || user.role === 'coach') && (
               <Button asChild>
                 <Link href="/tournaments/create">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Tournament
+                  <Plus className="mr-2 h-4 w-4 inline" /> Create Tournament
                 </Link>
               </Button>
             )}

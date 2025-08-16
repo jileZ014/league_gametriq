@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Roboto, Roboto_Mono, Roboto_Flex } from 'next/font/google'
-import { ThemeProvider } from '@/components/providers/theme-provider'
+import { SimpleThemeProvider } from '@/components/providers/theme-provider'
 import { ModernUIProvider } from '@/components/providers/modern-ui-provider'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     default: 'GameTriq League Management',
     template: '%s | GameTriq League Management'
   },
-  description: 'Basketball League Management Platform - Manage teams, players, games, and statistics with real-time updates and mobile-first design.',
+  description: 'Trophy League Management Platform - Manage teams, players, games, and statistics with real-time updates and mobile-first design.',
   keywords: [
     'basketball',
     'league management',
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://gametriq.com',
     title: 'GameTriq League Management',
-    description: 'Basketball League Management Platform - Manage teams, players, games, and statistics with real-time updates.',
+    description: 'Trophy League Management Platform - Manage teams, players, games, and statistics with real-time updates.',
     siteName: 'GameTriq',
     images: [
       {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'GameTriq League Management',
-    description: 'Basketball League Management Platform for teams, players, and leagues.',
+    description: 'Trophy League Management Platform for teams, players, and leagues.',
     images: ['/og-image.png'],
     creator: '@gametriq',
   },
@@ -159,7 +159,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="msapplication-TileColor" content="#ff9800" />
         <meta name="msapplication-tap-highlight" content="no" />
         
-        {/* Basketball-specific theme colors */}
+        {/* Trophy-specific theme colors */}
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ff9800" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ff9800" />
         
@@ -206,7 +206,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           theme="auto" 
           enableModernUI={process.env.NEXT_PUBLIC_UI_MODERN_V1 === '1'}
         >
-          <ThemeProvider
+          <SimpleThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
@@ -232,7 +232,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <OfflineIndicator />
               </QueryProvider>
             </AuthProvider>
-          </ThemeProvider>
+          </SimpleThemeProvider>
         </ModernUIProvider>
 
         {/* Enhanced Service Worker Registration */}
@@ -277,10 +277,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   window.location.reload();
                 });
                 
-                // Enable navigation preload if supported
-                if ('navigationPreload' in self.registration) {
-                  await self.registration.navigationPreload.enable();
-                }
+                // Enable navigation preload if supported (only in service worker context)
               }
             `,
           }}

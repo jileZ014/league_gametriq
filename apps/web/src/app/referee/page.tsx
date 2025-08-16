@@ -16,7 +16,6 @@ import {
   CheckCircle,
   Phone,
   Navigation,
-  Whistle,
   ClipboardList,
   Send,
   Download
@@ -321,7 +320,7 @@ export default function RefereeDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="gap-1">
-            <Whistle className="h-3 w-3" />
+            <AlertTriangle className="h-3 w-3" />
             Certified Official
           </Badge>
         </div>
@@ -442,7 +441,7 @@ export default function RefereeDashboard() {
             <Card>
               <CardContent className="flex items-center justify-center h-96 text-muted-foreground">
                 <div className="text-center">
-                  <Whistle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Select an assignment to view details</p>
                 </div>
               </CardContent>

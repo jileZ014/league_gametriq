@@ -44,31 +44,62 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
+    console.log('Login attempt for:', data.email)
 
     try {
+      // Validate Supabase client is initialized
+      if (!supabase) {
+        console.error('Supabase client not initialized')
+        throw new Error('Authentication service is not available. Please refresh the page and try again.')
+      }
+
       // Sign in with Supabase
+      console.log('Signing in with Supabase...')
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       })
 
+      console.log('Login response:', {
+        success: !!authData?.user,
+        userId: authData?.user?.id,
+        error: authError?.message || 'none'
+      })
+
       if (authError) {
+        console.error('Auth error details:', {
+          message: authError.message,
+          status: authError.status,
+          code: authError.code
+        })
         throw authError
       }
 
       if (!authData.user) {
-        throw new Error('Login failed')
+        throw new Error('Login failed - no user data returned')
       }
 
       // Get user role from database
+      console.log('Fetching user profile...')
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role, name')
         .eq('id', authData.user.id)
         .single()
 
-      if (userError || !userData) {
-        throw new Error('User profile not found')
+      if (userError) {
+        console.error('Profile fetch error:', userError)
+        // User exists in auth but not in database - they need to complete registration
+        toast.warning('Please complete your profile registration')
+        router.push('/register/complete')
+        return
+      }
+
+      if (!userData) {
+        console.warn('No user profile found for:', authData.user.id)
+        toast.warning('Please complete your profile registration')
+        router.push('/register/complete')
+        return
       }
 
       // Update last login timestamp
@@ -84,14 +115,25 @@ export default function LoginPage() {
       router.push(dashboardPath)
       router.refresh()
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('Login error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        fullError: error
+      })
       
-      if (error.message === 'Invalid login credentials') {
-        toast.error('Invalid email or password')
-      } else if (error.message === 'Email not confirmed') {
-        toast.error('Please verify your email before logging in')
+      if (error.message?.includes('Invalid login credentials') || error.message?.includes('Invalid email or password')) {
+        toast.error('Invalid email or password. Please check your credentials and try again.')
+      } else if (error.message?.includes('Email not confirmed')) {
+        toast.error('Please verify your email before logging in. Check your inbox for the verification email.')
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.')
+      } else if (error.message?.includes('rate limit')) {
+        toast.error('Too many login attempts. Please wait a few minutes and try again.')
+      } else if (error.message?.includes('not available')) {
+        toast.error('Authentication service is temporarily unavailable. Please try again.')
       } else {
-        toast.error(error.message || 'An error occurred during login')
+        toast.error(`Login failed: ${error.message || 'Unknown error occurred'}`)
       }
     } finally {
       setIsLoading(false)

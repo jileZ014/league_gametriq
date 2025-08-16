@@ -19,28 +19,37 @@ export function useOffline(): UseOfflineReturn {
 
   // Check for pending sync requests
   useEffect(() => {
-    if ('sync' in self.registration) {
-      // Count pending sync requests
-      const checkPending = async () => {
-        const tags = await (self.registration as any).sync.getTags()
-        setPendingRequests(tags.length)
-      }
-      
-      checkPending()
-      
-      // Check periodically
-      const interval = setInterval(checkPending, 5000)
-      return () => clearInterval(interval)
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        if ('sync' in registration) {
+          // Count pending sync requests
+          const checkPending = async () => {
+            const tags = await (registration as any).sync.getTags()
+            setPendingRequests(tags.length)
+          }
+          
+          checkPending()
+          
+          // Check periodically
+          const interval = setInterval(checkPending, 5000)
+          return () => clearInterval(interval)
+        }
+      }).catch(() => {
+        // Service worker not available
+      })
     }
   }, [])
 
   // Sync data when coming back online
   useEffect(() => {
     const handleOnline = async () => {
-      if ('sync' in self.registration) {
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         try {
-          await (self.registration as any).sync.register('sync-data')
-          setLastSync(new Date())
+          const registration = await navigator.serviceWorker.ready
+          if ('sync' in registration) {
+            await (registration as any).sync.register('sync-data')
+            setLastSync(new Date())
+          }
         } catch (error) {
           console.error('Failed to register sync:', error)
         }
@@ -56,10 +65,13 @@ export function useOffline(): UseOfflineReturn {
   }, [isOffline])
 
   const syncData = useCallback(async () => {
-    if ('sync' in self.registration) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       try {
-        await (self.registration as any).sync.register('sync-data')
-        setLastSync(new Date())
+        const registration = await navigator.serviceWorker.ready
+        if ('sync' in registration) {
+          await (registration as any).sync.register('sync-data')
+          setLastSync(new Date())
+        }
       } catch (error) {
         console.error('Failed to sync data:', error)
       }
@@ -84,8 +96,15 @@ export function useOffline(): UseOfflineReturn {
       setPendingRequests(prev => prev + 1)
       
       // Register for background sync
-      if ('sync' in self.registration) {
-        await (self.registration as any).sync.register('sync-requests')
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready
+          if ('sync' in registration) {
+            await (registration as any).sync.register('sync-requests')
+          }
+        } catch (error) {
+          console.error('Failed to register background sync:', error)
+        }
       }
     }
   }, [])

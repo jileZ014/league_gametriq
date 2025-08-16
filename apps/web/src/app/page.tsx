@@ -8,9 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Basketball, 
-  Users, 
   Trophy, 
+  Users, 
   BarChart3, 
   Shield, 
   Smartphone,
@@ -23,7 +22,7 @@ import {
 
 const features = [
   {
-    icon: Basketball,
+    icon: Trophy,
     title: 'Live Game Scoring',
     description: 'Real-time scoring with offline support and automatic sync',
     color: 'text-basketball-orange-500'
@@ -131,7 +130,7 @@ export default function HomePage() {
         <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
           <div className="container flex h-16 items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Basketball className="h-8 w-8 text-basketball-orange-500" />
+              <Trophy className="h-8 w-8 text-basketball-orange-500" />
               <span className="text-xl font-bold text-basketball-orange-500">GameTriq</span>
             </div>
             
@@ -173,7 +172,7 @@ export default function HomePage() {
               >
                 <div className="space-y-4">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                    Basketball League Management
+                    Trophy League Management
                     <span className="text-basketball-orange-500"> Made Simple</span>
                   </h1>
                   <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl">
@@ -184,9 +183,8 @@ export default function HomePage() {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" asChild>
-                    <Link href="/register" className="inline-flex items-center">
-                      Get Started Free
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                    <Link href="/register">
+                      Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                   <Button variant="outline" size="lg" asChild>
@@ -242,7 +240,7 @@ export default function HomePage() {
                 className="text-center space-y-4 mb-12"
               >
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                  Everything You Need to Manage Basketball
+                  Everything You Need to Manage Trophy
                 </h2>
                 <p className="mx-auto max-w-[600px] text-gray-600 md:text-lg">
                   From youth leagues to competitive tournaments, GameTriq provides all the tools 
@@ -377,9 +375,8 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button size="lg" variant="secondary" asChild>
-                    <Link href="/register" className="inline-flex items-center">
-                      Start Free Trial
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                    <Link href="/register">
+                      Start Free Trial <ArrowRight className="ml-2 h-4 w-4 inline" />
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-basketball-green-500" asChild>
@@ -396,7 +393,7 @@ export default function HomePage() {
           <div className="container py-8">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="flex items-center space-x-2">
-                <Basketball className="h-6 w-6 text-basketball-orange-500" />
+                <Trophy className="h-6 w-6 text-basketball-orange-500" />
                 <span className="font-semibold">GameTriq</span>
               </div>
               <div className="flex items-center space-x-6 text-sm text-gray-500">

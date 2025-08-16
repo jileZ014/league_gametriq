@@ -76,6 +76,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const Comp = asChild ? Slot : 'button'
     
+    // When using asChild, we can't add extra elements
+    // The Slot component requires a single child
+    if (asChild) {
+      return (
+        <Comp
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          disabled={disabled || loading}
+          aria-disabled={disabled || loading}
+          {...props}
+        >
+          {children}
+        </Comp>
+      )
+    }
+    
+    // For regular button, we can add icons and loading state
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}

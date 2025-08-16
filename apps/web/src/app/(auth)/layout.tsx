@@ -17,7 +17,7 @@ export default async function AuthLayout({
 
   return (
     <div className="min-h-screen flex flex-col sm:flex-row">
-      {/* Left side - Basketball theme */}
+      {/* Left side - Trophy theme */}
       <div className="relative hidden lg:flex lg:w-1/2 xl:w-2/5 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
@@ -38,7 +38,7 @@ export default async function AuthLayout({
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold">GameTriq Basketball</h1>
+              <h1 className="text-2xl font-bold">GameTriq Trophy</h1>
             </div>
             
             <h2 className="text-4xl lg:text-5xl font-bold mb-4">
@@ -103,7 +103,7 @@ export default async function AuthLayout({
           </div>
         </div>
 
-        {/* Basketball court pattern overlay */}
+        {/* Trophy court pattern overlay */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <circle cx="50" cy="50" r="15" fill="none" stroke="white" strokeWidth="0.5" />

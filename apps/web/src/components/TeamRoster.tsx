@@ -981,7 +981,7 @@ function PlayerFormDialog({ isOpen, player, existingNumbers, onClose, onSubmit }
               <Input
                 id="height"
                 {...form.register('height')}
-                placeholder="e.g., 5'10\""
+                placeholder={`e.g., 5'10"`}
               />
             </div>
 

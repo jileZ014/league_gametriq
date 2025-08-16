@@ -38,7 +38,7 @@ export function OfflineIndicator() {
               <>
                 <WifiOff className="h-5 w-5 text-destructive" />
                 <div>
-                  <p className="text-sm font-medium">You're offline</p>
+                  <p className="text-sm font-medium">You&apos;re offline</p>
                   {pendingRequests > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {pendingRequests} pending {pendingRequests === 1 ? 'update' : 'updates'}

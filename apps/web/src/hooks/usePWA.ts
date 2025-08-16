@@ -25,13 +25,13 @@ export function usePWA(): UsePWAReturn {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isInstallable, setIsInstallable] = useState(false)
-  const [isOffline, setIsOffline] = useState(!navigator.onLine)
+  const [isOffline, setIsOffline] = useState(typeof window !== 'undefined' ? !navigator.onLine : false)
   const [hasUpdate, setHasUpdate] = useState(false)
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null)
 
   // Detect platform
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
-  const isAndroid = /Android/.test(navigator.userAgent)
+  const isIOS = typeof window !== 'undefined' ? /iPhone|iPad|iPod/.test(navigator.userAgent) : false
+  const isAndroid = typeof window !== 'undefined' ? /Android/.test(navigator.userAgent) : false
 
   // Check if app is installed
   useEffect(() => {

@@ -10,9 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Basketball,
-  Users,
   Trophy,
+  Users,
   BarChart3,
   Clock,
   Shield,
@@ -66,7 +65,7 @@ interface QuickAction {
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center space-y-4">
-      <Basketball className="h-12 w-12 mx-auto text-basketball-orange-500 animate-spin" />
+      <Trophy className="h-12 w-12 mx-auto text-basketball-orange-500 animate-spin" />
       <p className="text-muted-foreground">Loading dashboard...</p>
     </div>
   </div>
@@ -387,12 +386,12 @@ export default function AdminDashboard() {
                       <p className="text-sm font-medium text-gray-600">Total Players</p>
                       <p className="text-3xl font-bold text-gray-900">{stats.totalPlayers}</p>
                       <p className="text-xs text-basketball-orange-600 flex items-center mt-1">
-                        <Basketball className="h-3 w-3 mr-1" />
+                        <Trophy className="h-3 w-3 mr-1" />
                         Registered
                       </p>
                     </div>
                     <div className="p-3 bg-basketball-orange-100 rounded-full">
-                      <Basketball className="h-6 w-6 text-basketball-orange-600" />
+                      <Trophy className="h-6 w-6 text-basketball-orange-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -629,7 +628,7 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       <div className="text-center py-8 text-gray-500">
-                        <Basketball className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                        <Trophy className="h-16 w-16 mx-auto mb-4 opacity-50" />
                         <p className="text-lg font-medium mb-2">No live games</p>
                         <p>All games are completed or upcoming</p>
                       </div>

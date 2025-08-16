@@ -8,9 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
-  Basketball,
-  Users,
   Trophy,
+  Users,
   BarChart3,
   Clock,
   Shield,
@@ -55,7 +54,7 @@ const roleConfig = {
   },
   'parent': {
     title: 'Parent Dashboard',
-    description: "Follow your child's basketball journey",
+    description: "Follow your child&apos;s basketball journey",
     color: 'text-basketball-green-600',
     bgGradient: 'from-basketball-green-500 to-teal-500',
     icon: Shield,
@@ -65,7 +64,7 @@ const roleConfig = {
     description: 'Track your stats and team progress',
     color: 'text-blue-600',
     bgGradient: 'from-blue-500 to-cyan-500',
-    icon: Basketball,
+    icon: Trophy,
   },
   'referee': {
     title: 'Referee Dashboard',
@@ -112,7 +111,7 @@ export default function RoleDashboard({ params }: DashboardPageProps) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
-          <Basketball className="h-12 w-12 mx-auto text-basketball-orange-500 animate-basketball-spin" />
+          <Trophy className="h-12 w-12 mx-auto text-basketball-orange-500 animate-basketball-spin" />
           <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
@@ -224,7 +223,7 @@ export default function RoleDashboard({ params }: DashboardPageProps) {
               Welcome back, {user.name.split(' ')[0]}!
             </h2>
             <p className="text-gray-600">
-              Here's what's happening with your basketball activities today.
+              Here&apos;s what&apos;s happening with your basketball activities today.
             </p>
           </div>
 
@@ -242,7 +241,7 @@ export default function RoleDashboard({ params }: DashboardPageProps) {
                     </p>
                   </div>
                   <div className="p-3 bg-basketball-orange-100 rounded-full">
-                    <Basketball className="h-6 w-6 text-basketball-orange-600" />
+                    <Trophy className="h-6 w-6 text-basketball-orange-600" />
                   </div>
                 </div>
               </CardContent>
@@ -491,7 +490,7 @@ export default function RoleDashboard({ params }: DashboardPageProps) {
                 {role === 'parent' && (
                   <>
                     <Button variant="outline" className="h-20 flex-col space-y-2">
-                      <Basketball className="h-6 w-6" />
+                      <Trophy className="h-6 w-6" />
                       <span className="text-xs">Child's Games</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex-col space-y-2">
