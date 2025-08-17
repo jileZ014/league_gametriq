@@ -1,71 +1,55 @@
 {
   "version": 2,
-  "name": "gametriq-league-app",
-  "projects": [
+  "builds": [
     {
-      "name": "gametriq-web",
-      "source": "apps/web",
-      "framework": "nextjs",
-      "buildCommand": "cd apps/web && npm run build",
-      "devCommand": "cd apps/web && npm run dev",
-      "installCommand": "npm install && cd apps/web && npm install",
-      "outputDirectory": "apps/web/.next",
-      "rootDirectory": "apps/web",
-      "env": {
-        "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
-        "NEXT_PUBLIC_API_URL": "@api_url",
-        "NEXT_PUBLIC_WS_URL": "@ws_url",
-        "NEXT_PUBLIC_ENV": "production"
-      }
+      "src": "api/index.ts",
+      "use": "@vercel/node"
     },
     {
-      "name": "gametriq-api",
-      "source": "apps/api",
-      "runtime": "nodejs18.x",
-      "buildCommand": "cd apps/api && npm run build",
-      "devCommand": "cd apps/api && npm run start:dev",
-      "installCommand": "npm install && cd apps/api && npm install",
-      "outputDirectory": "apps/api/dist",
-      "rootDirectory": "apps/api",
-      "env": {
-        "NODE_ENV": "production",
-        "PORT": "3000",
-        "DATABASE_URL": "@database_url",
-        "JWT_SECRET": "@jwt_secret",
-        "JWT_EXPIRES_IN": "7d",
-        "SUPABASE_URL": "@supabase_url",
-        "SUPABASE_SERVICE_KEY": "@supabase_service_key",
-        "STRIPE_SECRET_KEY": "@stripe_secret_key",
-        "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
-        "REDIS_URL": "@redis_url",
-        "EMAIL_FROM": "@email_from",
-        "EMAIL_SMTP_HOST": "@email_smtp_host",
-        "EMAIL_SMTP_PORT": "@email_smtp_port",
-        "EMAIL_SMTP_USER": "@email_smtp_user",
-        "EMAIL_SMTP_PASS": "@email_smtp_pass"
-      }
+      "src": "homepage.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "dashboard.html", 
+      "use": "@vercel/static"
+    },
+    {
+      "src": "login.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "register.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "teams.html",
+      "use": "@vercel/static"
     }
   ],
-  "build": {
-    "env": {
-      "SKIP_ENV_VALIDATION": "1"
-    }
-  },
-  "functions": {
-    "apps/api/dist/main.js": {
-      "maxDuration": 60
-    }
-  },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "apps/api/dist/main.js"
+      "dest": "/api/index.ts"
     },
     {
-      "src": "/(.*)",
-      "dest": "apps/web/$1"
+      "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/register", 
+      "dest": "/register.html"
+    },
+    {
+      "src": "/teams",
+      "dest": "/teams.html"
+    },
+    {
+      "src": "/",
+      "dest": "/homepage.html"
     }
   ]
 }
