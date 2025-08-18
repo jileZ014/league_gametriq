@@ -1,21 +1,109 @@
-# example netlify.toml
+# Netlify Configuration for Gametriq League App
+# Optimized for Next.js monorepo deployment
+
 [build]
-  command = "npm run build"
-  functions = "netlify/functions"
+  # Build from the web app directory
+  base = "apps/web"
+  
+  # Build command with dependency installation
+  # Using cross-platform commands and legacy peer deps to avoid conflicts
+  command = "cd ../.. && npm install --legacy-peer-deps && cd apps/web && npm install --legacy-peer-deps && npm run build"
+  
+  # Next.js output directory
   publish = ".next"
+  
+  # Use Node 18 for compatibility
+  environment = { NODE_VERSION = "18.17.0" }
 
-  ## Uncomment to use this redirect for Single Page Applications like create-react-app.
-  ## Not needed for static site generators.
-  #[[redirects]]
-  #  from = "/*"
-  #  to = "/index.html"
-  #  status = 200
+[build.environment]
+  # Prevent puppeteer from downloading chromium (causes hangs)
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  
+  # Skip husky install in CI
+  HUSKY = "0"
+  
+  # Next.js optimizations
+  NEXT_TELEMETRY_DISABLED = "1"
+  
+  # Build configuration
+  NODE_ENV = "production"
+  NPM_FLAGS = "--legacy-peer-deps"
+  
+  # Skip environment validation during build
+  SKIP_ENV_VALIDATION = "true"
+  
+  # CI environment
+  CI = "true"
 
-  ## (optional) Settings for Netlify Dev
-  ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
-  #[dev]
-  #  command = "yarn start" # Command to start your dev server
-  #  port = 3000 # Port that the dev server will be listening on
-  #  publish = "dist" # Folder with the static content for _redirect file
+# Essential plugin for Next.js on Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
-  ## more info on configuring this file: https://ntl.fyi/file-based-build-config
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# API proxy redirect (update with your actual API URL)
+[[redirects]]
+  from = "/api/*"
+  to = "https://gametriq-api.herokuapp.com/api/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+# Handle Next.js routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin", "user"]}
+
+# Function directory for serverless functions (if needed)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Environment-specific settings
+[context.production]
+  environment = { 
+    NEXT_PUBLIC_ENV = "production",
+    NEXT_PUBLIC_API_URL = "https://gametriq-api.herokuapp.com"
+  }
+
+[context.deploy-preview]
+  environment = { 
+    NEXT_PUBLIC_ENV = "preview",
+    NEXT_PUBLIC_API_URL = "https://gametriq-api-staging.herokuapp.com"
+  }
+
+[context.branch-deploy]
+  environment = { 
+    NEXT_PUBLIC_ENV = "development",
+    NEXT_PUBLIC_API_URL = "http://localhost:3000"
+  }
+
+# Development configuration
+[dev]
+  command = "npm run dev"
+  port = 4000
+  targetPort = 3000
+  publish = ".next"
+  autoLaunch = false

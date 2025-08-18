@@ -1,0 +1,106 @@
+# Netlify Ignore File
+# Files and directories to exclude from deployment
+
+# Git
+.git
+.gitignore
+
+# Dependencies (Netlify will install fresh)
+node_modules
+apps/*/node_modules
+services/*/node_modules
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.local
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+docs
+*.md
+README.md
+CHANGELOG.md
+LICENSE
+
+# Testing
+coverage
+test-results
+playwright-report
+.pw-user
+cypress
+__tests__
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+
+# Build artifacts (will be regenerated)
+dist
+build
+.next/cache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+
+# Services directory (not needed for web deployment)
+services/
+
+# Mobile app (separate deployment)
+apps/mobile/
+
+# API (if deploying separately)
+apps/api/
+
+# Storybook
+.storybook
+storybook-static
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+tmp
+temp
+.tmp
+
+# Backup files
+*.backup
+*.bak
+
+# Puppeteer
+.puppeteer-*
+node_modules/.puppeteer-*
+
+# Basketball MVP (if not needed)
+basketball-mvp/
+
+# Vercel files (switching to Netlify)
+.vercel
+vercel.json
+.vercelignore

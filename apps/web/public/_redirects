@@ -1,0 +1,7 @@
+# Netlify Redirects for SPA
+
+# API Proxy - Update this URL with your actual API endpoint
+/api/*  https://gametriq-api.herokuapp.com/api/:splat  200
+
+# Handle all routes for client-side routing (Next.js/React Router)
+/*    /index.html   200
