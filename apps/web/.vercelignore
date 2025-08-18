@@ -49,3 +49,9 @@ storybook-static
 # Other apps
 ../api
 ../mobile
+
+# Services (not deployed to Vercel)
+../../services/
+# Puppeteer chromium binaries
+node_modules/.puppeteer-*
+.puppeteer-*

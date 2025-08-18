@@ -43,10 +43,10 @@
     "deploy:staging": "npm run build && npm run deploy:staging:api && npm run deploy:staging:web",
     "deploy:production": "npm run build && npm run deploy:prod:api && npm run deploy:prod:web",
     "clean": "npm run clean:deps && npm run clean:build",
-    "clean:deps": "rm -rf node_modules apps/*/node_modules",
-    "clean:build": "rm -rf apps/*/dist apps/*/.next apps/*/build",
+    "clean:deps": "rimraf node_modules apps/*/node_modules",
+    "clean:build": "rimraf apps/*/dist apps/*/.next apps/*/build",
     "setup": "npm install && npm run setup:env && npm run db:migrate && npm run db:seed",
-    "setup:env": "cp .env.example .env && cp apps/web/.env.example apps/web/.env.local",
+    "setup:env": "cpx .env.example .env && cpx apps/web/.env.example apps/web/.env.local",
     "health": "curl -f http://localhost:4000/api/health || exit 1",
     "workspace:install": "npm install && cd apps/api && npm install && cd ../web && npm install && cd ../mobile && npm install",
     "workspace:update": "npm update && cd apps/api && npm update && cd ../web && npm update && cd ../mobile && npm update",
@@ -62,7 +62,6 @@
     "packages/*"
   ],
   "dependencies": {
-    "@next/font": "^14.2.5",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
     "@supabase/supabase-js": "^2.39.1",
@@ -105,6 +104,10 @@
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
+    "rimraf": "^5.0.5",
+    "copyfiles": "^2.4.1",
+    "cpx": "^1.5.0",
+    "npm-run-all": "^4.1.5",
     "tailwindcss": "^3.4.6",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2"

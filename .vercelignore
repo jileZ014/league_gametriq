@@ -101,3 +101,9 @@ storybook-static/
 # Basketball MVP standalone files
 basketball-mvp/
 *.html
+
+# Services (not deployed to Vercel)
+services/
+# Puppeteer chromium binaries
+node_modules/.puppeteer-*
+.puppeteer-*

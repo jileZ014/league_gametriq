@@ -4,7 +4,7 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "npm ci --prefer-offline --no-audit",
   "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
@@ -17,12 +17,17 @@
   "build": {
     "env": {
       "SKIP_ENV_VALIDATION": "1",
-      "CI": "false"
+      "CI": "false",
+      "VERCEL_ENV": "production",
+      "NODE_OPTIONS": "--max_old_space_size=4096",
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+      "puppeteer_skip_chromium_download": "true"
     }
   },
   "functions": {
     "app/api/**/*.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "headers": [
@@ -40,6 +45,32 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
@@ -49,5 +80,6 @@
       "source": "/api/:path*",
       "destination": "https://gametriq-api.vercel.app/api/:path*"
     }
-  ]
+  ],
+  "regions": ["iad1"]
 }

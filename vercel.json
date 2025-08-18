@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "installCommand": "npm install --legacy-peer-deps --no-optional",
+  "buildCommand": "echo 'Build complete'",
+  "framework": null,
+  
   "builds": [
     {
       "src": "api/index.ts",
@@ -26,6 +30,7 @@
       "use": "@vercel/static"
     }
   ],
+  
   "routes": [
     {
       "src": "/api/(.*)",
@@ -51,5 +56,22 @@
       "src": "/",
       "dest": "/homepage.html"
     }
-  ]
+  ],
+  
+  "env": {
+    "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+    "PUPPETEER_SKIP_DOWNLOAD": "true",
+    "puppeteer_skip_chromium_download": "true",
+    "NODE_ENV": "production"
+  },
+  
+  "build": {
+    "env": {
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+      "PUPPETEER_SKIP_DOWNLOAD": "true",
+      "puppeteer_skip_chromium_download": "true",
+      "NODE_ENV": "production",
+      "CI": "true"
+    }
+  }
 }

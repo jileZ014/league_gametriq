@@ -34,8 +34,8 @@
   "author": "GameTriq Development Team",
   "license": "PROPRIETARY",
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
     "express": "^4.19.2",
