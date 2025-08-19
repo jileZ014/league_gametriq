@@ -85,7 +85,8 @@
       "Bash(done)",
       "Bash(for file in *.tsx)",
       "Bash(do sed -i \"s/\\/\\/ import { Progress } from ''@\\/components\\/ui\\/progress'' \\/\\/ Removed - component not available/import { Progress } from ''@\\/components\\/ui\\/progress''/g\" $file)",
-      "Bash(timeout 30s npm run build)"
+      "Bash(timeout 30s npm run build)",
+      "Bash(./node_modules/.bin/next build)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

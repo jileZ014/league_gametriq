@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd apps/web && NODE_OPTIONS='--max_old_space_size=4096' npm run build",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "cd apps/web && npm install --legacy-peer-deps",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next"
 }

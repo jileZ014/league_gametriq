@@ -1,0 +1,6 @@
+This is a placeholder for a 192x192 PNG icon.
+In production, you would use an actual PNG image file.
+To generate real icons:
+1. Use the generate-icons.js script to create SVGs
+2. Convert SVGs to PNGs using ImageMagick or online tools
+3. Optimize the PNGs for web use
