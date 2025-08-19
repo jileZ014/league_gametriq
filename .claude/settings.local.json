@@ -68,7 +68,17 @@
       "Bash(cd:*)",
       "Bash(./pre-deploy-check.sh:*)",
       "Bash(bash:*)",
-      "Bash(./deploy-vercel.sh)"
+      "Bash(./deploy-vercel.sh)",
+      "Bash(NODE_OPTIONS=\"--max_old_space_size=4096\" next build)",
+      "Bash(export NODE_OPTIONS=\"--max_old_space_size=4096\")",
+      "Bash(next build)",
+      "Bash(pnpm dev:*)",
+      "Bash(expect:*)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(vercel:*)",
+      "Bash(echo:*)",
+      "Bash(pnpm install:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

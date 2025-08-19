@@ -1,0 +1,66 @@
+{
+  "version": 2,
+  "name": "gametriq-web",
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci --prefer-offline --no-audit --legacy-peer-deps",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
+    "NEXT_PUBLIC_API_URL": "@api_url",
+    "NEXT_PUBLIC_WS_URL": "@ws_url",
+    "NEXT_PUBLIC_ENV": "production",
+    "NEXT_PUBLIC_APP_URL": "https://gametriq-web.vercel.app"
+  },
+  "build": {
+    "env": {
+      "SKIP_ENV_VALIDATION": "true",
+      "CI": "true",
+      "NODE_ENV": "production",
+      "NODE_OPTIONS": "--max_old_space_size=4096",
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+      "PUPPETEER_SKIP_DOWNLOAD": "true"
+    }
+  },
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://gametriq-api.vercel.app/api/:path*"
+    }
+  ],
+  "regions": ["iad1"],
+  "cleanUrls": true,
+  "trailingSlash": false
+}

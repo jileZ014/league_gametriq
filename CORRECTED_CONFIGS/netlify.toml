@@ -1,0 +1,82 @@
+# Netlify Configuration for Gametriq League App
+# CORRECTED VERSION - Simplified and fixed
+
+[build]
+  # Build from the web app directory
+  base = "apps/web"
+  
+  # CORRECTED: Simplified build command
+  command = "npm ci --legacy-peer-deps && npm run build"
+  
+  # Next.js output directory
+  publish = ".next"
+  
+  # Use Node 18 for compatibility
+  environment = { NODE_VERSION = "18.17.0" }
+
+[build.environment]
+  # Essential environment variables
+  NODE_ENV = "production"
+  CI = "true"
+  
+  # Prevent puppeteer from downloading chromium
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  
+  # Next.js optimizations
+  NEXT_TELEMETRY_DISABLED = "1"
+  SKIP_ENV_VALIDATION = "true"
+  
+  # Build flags
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# Essential plugin for Next.js on Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# CORRECTED: API proxy redirect with environment-specific URL
+[[redirects]]
+  from = "/api/*"
+  to = "https://gametriq-api.netlify.app/api/:splat"
+  status = 200
+  force = true
+
+# Handle Next.js routing - CORRECTED: Remove invalid conditions
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment-specific settings
+[context.production]
+  environment = { 
+    NEXT_PUBLIC_ENV = "production",
+    NEXT_PUBLIC_API_URL = "https://gametriq-api.netlify.app"
+  }
+
+[context.deploy-preview]
+  environment = { 
+    NEXT_PUBLIC_ENV = "preview",
+    NEXT_PUBLIC_API_URL = "https://gametriq-api-staging.netlify.app"
+  }
+
+[context.branch-deploy]
+  environment = { 
+    NEXT_PUBLIC_ENV = "development",
+    NEXT_PUBLIC_API_URL = "http://localhost:3000"
+  }
