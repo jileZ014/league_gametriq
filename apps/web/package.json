@@ -79,6 +79,8 @@
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.1",
     "class-variance-authority": "^0.7.0",
+    "firebase": "^10.7.1",
+    "react-firebase-hooks": "^5.1.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
