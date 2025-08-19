@@ -1,16 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 
 const loginSchema = z.object({
@@ -25,7 +29,20 @@ export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isDemoMode, setIsDemoMode] = useState(false)
   const supabase = createClient()
+  const { signInWithGoogle, user, loading: authLoading, setDemoMode } = useAuth()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      // User is already logged in, redirect to dashboard
+      const role = localStorage.getItem('userRole')
+      if (role) {
+        router.push(`/${role}/dashboard`)
+      }
+    }
+  }, [user, authLoading, router])
 
   const {
     register,
@@ -141,48 +158,57 @@ export default function LoginPage() {
   }
 
   const handleDemoLogin = async (role: string) => {
-    setIsLoading(true)
+    setIsDemoMode(true)
+    setDemoMode(true)
     
-    try {
-      // Demo credentials based on role
-      const demoCredentials: Record<string, { email: string; password: string }> = {
-        'league-admin': { email: 'admin@gametriq.demo', password: 'DemoAdmin123!' },
-        'coach': { email: 'coach@gametriq.demo', password: 'DemoCoach123!' },
-        'parent': { email: 'parent@gametriq.demo', password: 'DemoParent123!' },
-        'referee': { email: 'referee@gametriq.demo', password: 'DemoRef123!' },
-        'scorekeeper': { email: 'scorer@gametriq.demo', password: 'DemoScore123!' },
-      }
-
-      const creds = demoCredentials[role]
-      if (!creds) {
-        throw new Error('Invalid demo role')
-      }
-
-      const { data: authData, error } = await supabase.auth.signInWithPassword(creds)
-
-      if (error) {
-        // If demo account doesn't exist, show appropriate message
-        toast.error('Demo accounts are not set up. Please use the register page to create an account.')
-        return
-      }
-
-      toast.success(`Logged in as demo ${role}`)
-      router.push(`/dashboard/${role}`)
-      router.refresh()
-    } catch (error: any) {
-      toast.error('Demo login failed. Please try registering a new account.')
-    } finally {
-      setIsLoading(false)
+    // In demo mode, bypass authentication and go directly to dashboard
+    toast.success(`Demo mode: ${role}`, {
+      description: 'Viewing in demo mode - changes will not be saved'
+    })
+    
+    // Map role names for navigation
+    const roleMap: Record<string, string> = {
+      'league-admin': 'admin',
+      'scorekeeper': 'scorer'
     }
+    
+    const dashboardRole = roleMap[role] || role
+    router.push(`/${dashboardRole}/dashboard`)
   }
 
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome to GameTriq</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Sign in to your GameTriq account
+          Basketball League Management Platform
         </p>
+      </div>
+
+      {/* Google Sign In - PRIMARY METHOD */}
+      <div className="space-y-4">
+        <GoogleSignInButton
+          onClick={signInWithGoogle}
+          text="Sign in with Google"
+          fullWidth
+        />
+        
+        {isDemoMode && (
+          <Badge variant="outline" className="w-full justify-center py-2">
+            Demo Mode Active - Changes will not be saved
+          </Badge>
+        )}
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-gray-50 dark:bg-gray-900 px-2 text-gray-500">
+            Or sign in with email
+          </span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -276,16 +302,10 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-gray-50 dark:bg-gray-900 px-2 text-gray-500">Or continue with</span>
-        </div>
-      </div>
+      <Separator className="my-6" />
 
       <div className="space-y-3">
+        <p className="text-center text-sm text-gray-500">Quick demo access (no login required)</p>
         <div className="grid grid-cols-2 gap-3">
           <Button
             type="button"
