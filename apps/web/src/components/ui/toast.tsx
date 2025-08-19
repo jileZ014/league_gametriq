@@ -1,0 +1,1 @@
+export const toast = (options: any) => console.log('Toast:', options)
