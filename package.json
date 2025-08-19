@@ -1,22 +1,52 @@
 {
-  "name": "gametriq-league-app",
+  "name": "@gametriq/web",
   "version": "1.0.1",
-  "description": "Basketball League Management Platform",
   "private": true,
+  "description": "Basketball League Management Platform - Web Application",
   "scripts": {
     "dev": "next dev -p 4000",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start -p 4000",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "live:headed": "cross-env UI_MODERN_V1=1 NEXT_PUBLIC_UI_MODERN_V1=1 node tools/runHeadedReview.js",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots",
+    "test:persistent:smoke": "node tools/runPersistentSmoke.js",
+    "test:persistent:headed": "node tools/runHeadedReview.js",
+    "test:persistent:modern": "UI_MODERN_V1=1 node tools/runPersistentSmoke.js",
+    "test:persistent:headed:modern": "UI_MODERN_V1=1 node tools/runHeadedReview.js",
     "test:smoke": "UI_MODERN_V1=1 PERSISTENT_MODE=1 playwright test tests/e2e/smoke-persistent.spec.ts --project=chromium",
-    "test:smoke:headed": "UI_MODERN_V1=1 HEADLESS=0 PERSISTENT_MODE=1 playwright test tests/e2e/smoke-persistent.spec.ts --project=chromium --headed"
+    "test:smoke:headed": "UI_MODERN_V1=1 HEADLESS=0 PERSISTENT_MODE=1 playwright test tests/e2e/smoke-persistent.spec.ts --project=chromium --headed",
+    "test:smoke:video": "UI_MODERN_V1=1 RECORD_VIDEO=1 PERSISTENT_MODE=1 playwright test tests/e2e/smoke-persistent.spec.ts --project=chromium",
+    "test:public": "PUBLIC_PORTAL_MODERN=1 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=chromium",
+    "test:public:headed": "PUBLIC_PORTAL_MODERN=1 HEADLESS=0 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=chromium --headed",
+    "test:public:mobile": "PUBLIC_PORTAL_MODERN=1 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=\"iPhone 14\"",
+    "test:public:video": "PUBLIC_PORTAL_MODERN=1 RECORD_VIDEO=1 PERSISTENT_MODE=1 playwright test tests/e2e/public-portal.spec.ts --project=chromium",
+    "test:public:perf": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/public-portal-performance.spec.ts --project=chromium",
+    "test:public:perf:headed": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/public-portal-performance.spec.ts --project=chromium --headed",
+    "test:public:a11y": "PUBLIC_PORTAL_MODERN=1 playwright test tests/e2e/a11y.spec.ts --grep=\"Public Portal\" --project=chromium",
+    "pw:clean": "rimraf .pw-user artifacts/playwright/screenshots artifacts/playwright/traces artifacts/playwright/videos",
+    "pw:report": "playwright show-report artifacts/playwright/html",
+    "pw:trace": "playwright show-trace",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "qa:health": "node qa/health-check.js",
+    "qa:comprehensive": "node qa/comprehensive-test-suite.js",
+    "qa:certification": "node qa/uat-certification.js",
+    "qa:report": "node qa/generate-report.js",
+    "qa:e2e": "playwright test qa/e2e-tests.spec.ts",
+    "qa:e2e:headed": "playwright test qa/e2e-tests.spec.ts --headed",
+    "qa:full": "npm run qa:health && npm run qa:e2e && npm run qa:certification && npm run qa:report",
+    "qa:demo-check": "npm run qa:health && npm run qa:certification",
+    "qa:production-ready": "npm run lint && npm run type-check && npm run test:ci && npm run qa:full"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.1",
@@ -140,5 +170,13 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
-  }
+  },
+  "main": "next-pwa.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
