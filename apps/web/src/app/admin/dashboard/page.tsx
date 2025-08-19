@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-// import { Progress } from '@/components/ui/progress' // Removed - component not available
+import { Progress } from '@/components/ui/progress'
 import { 
   Shield,
   Users,
@@ -296,12 +296,10 @@ export default function AdminDashboard() {
                           <span className="text-sm text-gray-500">{service.uptime}%</span>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${service.uptime < 98 ? 'bg-orange-600' : 'bg-green-600'}`} 
-                          style={{width: `${service.uptime}%`}}
-                        />
-                      </div>
+                      <Progress 
+                        value={service.uptime} 
+                        className={`h-2 ${service.uptime < 98 ? 'bg-orange-100' : ''}`}
+                      />
                     </div>
                   ))}
                 </div>

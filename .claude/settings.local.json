@@ -82,7 +82,9 @@
       "Bash(NODE_OPTIONS=\"--max-old-space-size=2048\" npx next dev --port 3000 --turbo)",
       "Bash(for file in TeamAnalytics.tsx PlayerInsights.tsx PredictionCard.tsx)",
       "Bash(do sed -i \"s/import { Progress } from ''@\\/components\\/ui\\/progress''/\\/\\/ import { Progress } from ''@\\/components\\/ui\\/progress'' \\/\\/ Removed - component not available/g\" $file)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(for file in *.tsx)",
+      "Bash(do sed -i \"s/\\/\\/ import { Progress } from ''@\\/components\\/ui\\/progress'' \\/\\/ Removed - component not available/import { Progress } from ''@\\/components\\/ui\\/progress''/g\" $file)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
