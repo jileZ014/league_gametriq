@@ -243,4 +243,4 @@ export function getPositionAbbreviation(position: string): string {
   }
   
   return positions[position] || position.slice(0, 2).toUpperCase()
-}
+}// Trigger Vercel deployment Tue Aug 19 08:40:52 MST 2025
