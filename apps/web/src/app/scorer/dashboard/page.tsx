@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
+// import { Progress } from '@/components/ui/progress' // Removed - component not available
 import { 
   Calendar, 
   Clock, 
@@ -270,7 +270,9 @@ export default function ScorerDashboard() {
                                 <span>Quarter {game.quarter}</span>
                                 <span className="font-mono">{game.timeRemaining}</span>
                               </div>
-                              <Progress value={75} className="h-2" />
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="bg-blue-600 h-2 rounded-full" style={{width: '75%'}} />
+                              </div>
                             </div>
                           )}
 

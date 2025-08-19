@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress' // Removed - component not available;
 import { 
   Users, 
   TrendingUp, 
@@ -188,7 +188,9 @@ export function TeamAnalytics({
               </div>
               
               <div className="space-y-2">
-                <Progress value={analysis.chemistry * 100} className="h-3" />
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="bg-green-600 h-3 rounded-full" style={{width: `${analysis.chemistry * 100}%`}} />
+                </div>
                 <div className="text-center text-sm text-gray-600">
                   {Math.round(analysis.chemistry * 100)}% Team Chemistry Score
                 </div>

@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress' // Removed - component not available;
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -180,10 +180,9 @@ export function PredictionCard({
             <span className="text-black">{awayTeam.name}</span>
           </div>
           <div className="relative">
-            <Progress 
-              value={homeWinProb} 
-              className="h-3 bg-gray-200"
-            />
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="bg-blue-600 h-3 rounded-full" style={{width: `${homeWinProb}%`}} />
+            </div>
             <div 
               className="absolute top-0 right-0 h-3 bg-black rounded-r"
               style={{ width: `${awayWinProb}%` }}

@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress' // Removed - component not available;
 import { 
   User, 
   TrendingUp, 
@@ -274,10 +274,12 @@ export function PlayerInsights({
                       <span className="text-sm font-medium text-black">Fatigue Level</span>
                       <Activity className="h-4 w-4 text-gray-500" />
                     </div>
-                    <Progress 
-                      value={prediction.fatigueLevel * 100} 
-                      className="h-2"
-                    />
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-yellow-600 h-2 rounded-full" 
+                        style={{width: `${prediction.fatigueLevel * 100}%`}}
+                      />
+                    </div>
                     <div className="text-xs text-gray-600 mt-1">
                       {prediction.fatigueLevel < 0.3 ? 'Fresh' : 
                        prediction.fatigueLevel < 0.6 ? 'Moderate' : 'Tired'}

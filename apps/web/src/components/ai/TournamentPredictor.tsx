@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress'; // Removed - component not available
 import { 
   Trophy, 
   Target, 
@@ -248,10 +248,12 @@ export function TournamentPredictor({
                                 {(projection.probability * 100).toFixed(1)}%
                               </span>
                             </div>
-                            <Progress 
-                              value={projection.probability * 100} 
-                              className="h-2"
-                            />
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{width: `${projection.probability * 100}%`}}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
