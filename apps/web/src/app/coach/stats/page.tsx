@@ -2,16 +2,16 @@
 
 import React, { useState } from 'react';
 import { CoachLayout } from '@/components/coach/CoachLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/simple-ui';
 import {
   Chart as ChartJS,
   CategoryScale,

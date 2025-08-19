@@ -20,7 +20,7 @@ jest.mock('lucide-react', () => ({
 }));
 
 // Mock UI components
-jest.mock('@/components/ui/button', () => ({
+jest.mock('@/components/simple-ui', () => ({
   Button: ({ children, onClick, className, ...props }: any) => (
     <button onClick={onClick} className={className} {...props}>
       {children}
@@ -28,13 +28,13 @@ jest.mock('@/components/ui/button', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/card', () => ({
+jest.mock('@/components/simple-ui', () => ({
   Card: ({ children, className }: any) => (
     <div className={className}>{children}</div>
   ),
 }));
 
-jest.mock('@/components/ui/badge', () => ({
+jest.mock('@/components/simple-ui', () => ({
   Badge: ({ children, className }: any) => (
     <span className={className}>{children}</span>
   ),

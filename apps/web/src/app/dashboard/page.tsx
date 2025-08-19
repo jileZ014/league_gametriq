@@ -5,10 +5,10 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/simple-ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/simple-ui'
 import {
   Trophy,
   Users,

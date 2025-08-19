@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { X, Download, Smartphone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Button } from '@/components/simple-ui'
+import { Card } from '@/components/simple-ui'
 import { usePWA } from '@/hooks/usePWA'
 import { cn } from '@/lib/utils'
 

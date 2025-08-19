@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { AgeGate } from '@/components/age-gate'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/simple-ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
 import { 
   Trophy, 
   Users, 

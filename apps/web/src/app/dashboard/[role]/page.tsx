@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/simple-ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
 import {
   Trophy,
   Users,

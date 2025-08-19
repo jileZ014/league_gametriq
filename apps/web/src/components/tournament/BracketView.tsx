@@ -14,9 +14,9 @@ import {
   TournamentTheme,
   DEFAULT_TOURNAMENT_THEME
 } from '@/lib/tournament/types';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/simple-ui';
+import { Card } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 import { 
   ZoomIn, 
   ZoomOut, 

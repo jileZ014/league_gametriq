@@ -6,11 +6,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import { useWebSocket } from '@/hooks/useWebSocket'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/simple-ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/simple-ui'
+import { Separator } from '@/components/simple-ui'
 import {
   Trophy,
   Calendar,

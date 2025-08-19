@@ -27,17 +27,17 @@ import {
   type PaymentIntentResponse,
   type PaymentMethodType 
 } from '@/lib/stripe/payment-api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Input } from '@/components/simple-ui';
+import { Label } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
+import { Alert, AlertDescription } from '@/components/simple-ui';
+import { Skeleton } from '@/components/simple-ui';
+import { Separator } from '@/components/simple-ui';
+import { Checkbox } from '@/components/simple-ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/simple-ui';
+import { Textarea } from '@/components/simple-ui';
 import { 
   CreditCard, 
   Lock, 

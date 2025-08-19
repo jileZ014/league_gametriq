@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Button } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { Input } from '@/components/simple-ui'
+import { Alert, AlertDescription } from '@/components/simple-ui'
 import { 
   CreditCard, 
   Download, 
@@ -27,13 +27,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@/components/simple-ui'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/simple-ui-menu'
 import { formatCurrency } from '@/lib/stripe/stripe-client'
 import { paymentAPI } from '@/lib/stripe/payment-api'
 import { format } from 'date-fns'

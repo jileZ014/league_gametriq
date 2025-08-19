@@ -4,8 +4,8 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Team } from '@/lib/tournament/types';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 import { GripVertical, Trophy, TrendingUp, Users } from 'lucide-react';
 
 interface TeamPlacementProps {

@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/simple-ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { Input } from '@/components/simple-ui'
+import { Label } from '@/components/simple-ui'
+import { Checkbox } from '@/components/simple-ui'
 import { ParentalConsent } from '@/components/parental-consent'
 import {
   Dialog,
@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog'
+} from '@/components/simple-ui'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/simple-ui'
 import { 
   Shield, 
   Calendar, 

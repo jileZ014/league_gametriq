@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchResult, searchPortal, debounce } from '@/lib/search'
 import { usePortalFilters } from '@/hooks/usePortalFilters'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
+import { Input } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { Card } from '@/components/simple-ui'
 
 interface SearchBarProps {
   className?: string

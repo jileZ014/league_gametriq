@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/simple-ui';
+import { Alert, AlertDescription } from '@/components/simple-ui';
 import {
   Calendar,
   Clock,

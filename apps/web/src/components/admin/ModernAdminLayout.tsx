@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useFeatureFlag } from '@/lib/feature-flags';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 
 interface ModernAdminLayoutProps {
   children: React.ReactNode;

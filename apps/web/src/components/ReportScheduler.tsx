@@ -6,20 +6,20 @@ import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addDays, addWeeks, addMonths, format, parse, isValid, isBefore, isAfter } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Input } from '@/components/simple-ui';
+import { Label } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
+import { Alert, AlertDescription } from '@/components/simple-ui';
+import { Skeleton } from '@/components/simple-ui';
+import { Separator } from '@/components/simple-ui';
+import { Checkbox } from '@/components/simple-ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/simple-ui';
+import { Textarea } from '@/components/simple-ui';
+import { Calendar } from '@/components/simple-ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/simple-ui';
+import { Switch } from '@/components/simple-ui';
 import { 
   FileText, 
   Calendar as CalendarIcon, 

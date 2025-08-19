@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useOffline } from '@/hooks/useOffline';
 import { WebSocketEvent, GameUpdatePayload } from '@/lib/websocket/websocket.types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Alert, AlertDescription } from '@/components/simple-ui';
+import { Skeleton } from '@/components/simple-ui';
 import { 
   Play, 
   Pause, 

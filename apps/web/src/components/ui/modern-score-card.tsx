@@ -3,7 +3,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { useModernUI, ModernUIConditional } from '@/components/providers/modern-ui-provider'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/simple-ui'
 
 interface ScoreCardProps {
   homeTeam: {

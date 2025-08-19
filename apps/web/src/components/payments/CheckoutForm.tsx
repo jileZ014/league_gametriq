@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Button } from '@/components/simple-ui'
+import { Alert, AlertDescription } from '@/components/simple-ui'
+import { Separator } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
 import { 
   CreditCard, 
   Lock, 
@@ -35,8 +35,8 @@ import {
   type PaymentIntentResponse 
 } from '@/lib/stripe/payment-api'
 import { toast } from 'sonner'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from '@/components/simple-ui'
+import { Label } from '@/components/simple-ui'
 
 interface CheckoutFormProps {
   // Payment details

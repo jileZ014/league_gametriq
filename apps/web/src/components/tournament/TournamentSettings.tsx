@@ -2,19 +2,19 @@
 
 import React from 'react';
 import { Tournament, TournamentSettings as Settings, SEEDING_METHODS, TIEBREAKER_RULES } from '@/lib/tournament/types';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card } from '@/components/simple-ui';
+import { Label } from '@/components/simple-ui';
+import { Checkbox } from '@/components/simple-ui';
 import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert } from '@/components/ui/alert';
+} from '@/components/simple-ui';
+import { Input } from '@/components/simple-ui';
+import { Textarea } from '@/components/simple-ui';
+import { Alert } from '@/components/simple-ui';
 import { 
   Settings as SettingsIcon, 
   Target, 

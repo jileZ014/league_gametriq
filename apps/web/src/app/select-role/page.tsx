@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { updateUserRole, getDashboardPath, getRoleDisplayName, getRoleDescription, UserRole } from '@/lib/auth/roleManager'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Button } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
 import { toast } from 'sonner'
 import { 
   Users, 

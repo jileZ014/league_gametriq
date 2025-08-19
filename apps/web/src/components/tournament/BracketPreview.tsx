@@ -2,9 +2,9 @@
 
 import React, { useState, useCallback } from 'react';
 import { BracketStructure, Tournament, Match, DEFAULT_TOURNAMENT_THEME } from '@/lib/tournament/types';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/simple-ui';
+import { Button } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 import { 
   ZoomIn, 
   ZoomOut, 

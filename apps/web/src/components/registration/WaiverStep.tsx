@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/simple-ui'
+import { Button } from '@/components/simple-ui'
+import { Checkbox } from '@/components/simple-ui'
+import { Label } from '@/components/simple-ui'
+import { Input } from '@/components/simple-ui'
+import { Badge } from '@/components/simple-ui'
+import { ScrollArea } from '@/components/simple-ui-area'
 import { 
   FileText, 
   AlertCircle, 

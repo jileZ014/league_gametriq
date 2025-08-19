@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/simple-ui';
+import { Badge } from '@/components/simple-ui';
 import { useGameWebSocket } from '@/hooks/useWebSocket';
 import { GameUpdatePayload } from '@/lib/websocket/websocket.types';
 import { motion, AnimatePresence } from 'framer-motion';
